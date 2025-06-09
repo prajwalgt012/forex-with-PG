@@ -24,61 +24,89 @@
       border-radius: 6px;
       cursor: pointer;
       margin-right: 8px;
+      margin-top: 8px;
     }
 
     input, textarea {
       padding: 10px;
       width: 300px;
-      margin: 10px 0;
+      margin: 5px 0;
       border-radius: 5px;
       border: none;
-    }
-
-    /* Each subscription entry box */
-    .entry {
-      background: #222;
-      padding: 15px 40px 15px 15px; /* right padding for 3-dot */
-      margin: 10px 0;
-      border-radius: 8px;
-      position: relative; /* for 3-dot positioning */
       box-sizing: border-box;
     }
 
-    /* Border color based on confirmation */
+    .entry {
+      background: #222;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 8px;
+      box-sizing: border-box;
+      border-left: 4px solid red;
+    }
+
     .confirmed {
       border-left: 4px solid #00ff00;
     }
 
-    .not-confirmed {
-      border-left: 4px solid red;
+    .entry-row {
+      margin-bottom: 6px;
     }
 
-    /* 3-dot menu styling */
-    .three-dot-menu {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-      font-size: 20px;
-      cursor: pointer;
-      user-select: none;
-      color: #ffd700;
+    label {
+      display: inline-block;
+      width: 80px;
       font-weight: bold;
     }
 
-    .three-dot-menu:hover {
+    /* Smaller width for inputs in entries */
+    .entry input[type="text"],
+    .entry input[type="email"] {
+      width: 250px;
+      background: #333;
       color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 5px;
     }
 
-    /* Post Signal textarea and status */
-    #signalMsg {
-      resize: vertical;
-      min-height: 60px;
+    /* Confirmed checkbox */
+    .entry input[type="checkbox"] {
+      transform: scale(1.3);
+      margin-left: 4px;
+      vertical-align: middle;
     }
 
-    #postStatus {
-      margin-top: 8px;
-      color: #0f0;
+    /* Add subscription form */
+    #addSubscriptionForm {
+      background: #222;
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 20px;
+      max-width: 400px;
+    }
+
+    /* Login form */
+    #loginForm {
+      background: #222;
+      padding: 25px;
+      border-radius: 10px;
+      max-width: 350px;
+      margin: 50px auto;
+      box-sizing: border-box;
+    }
+
+    #loginForm label {
+      width: auto;
+      display: block;
+      margin-bottom: 6px;
       font-weight: bold;
+    }
+
+    #loginError {
+      color: #f00;
+      font-weight: bold;
+      margin-top: 10px;
     }
   </style>
 </head>
@@ -87,7 +115,14 @@
   <h1>🔐 Admin Panel</h1>
 
   <div id="authSection">
-    <button id="adminSignIn">Sign in with Google</button>
+    <form id="loginForm" onsubmit="return login(event)">
+      <label for="username">Username:</label>
+      <input type="text" id="username" placeholder="Enter username" required />
+      <label for="password">Password:</label>
+      <input type="password" id="password" placeholder="Enter password" required />
+      <button type="submit">Login</button>
+      <p id="loginError"></p>
+    </form>
   </div>
 
   <div id="adminPanel" style="display:none;">
@@ -95,6 +130,28 @@
 
     <h2>📝 Subscription Requests</h2>
     <div id="requests"></div>
+
+    <h2>➕ Add New Subscription</h2>
+    <div id="addSubscriptionForm">
+      <div class="entry-row">
+        <label for="newEmail">Email:</label>
+        <input type="email" id="newEmail" placeholder="email@example.com" />
+      </div>
+      <div class="entry-row">
+        <label for="newUTR">UTR:</label>
+        <input type="text" id="newUTR" placeholder="UTR number" />
+      </div>
+      <div class="entry-row">
+        <label for="newPlan">Plan:</label>
+        <input type="text" id="newPlan" placeholder="Plan name" />
+      </div>
+      <div class="entry-row">
+        <label for="newConfirmed">Confirmed:</label>
+        <input type="checkbox" id="newConfirmed" />
+      </div>
+      <button onclick="addSubscription()">Add Subscription</button>
+      <p id="addSubStatus" style="color:#0f0; font-weight:bold;"></p>
+    </div>
 
     <h2>📢 Post Trade Signal</h2>
     <textarea id="signalMsg" placeholder="Enter trade signal message"></textarea><br />
@@ -104,10 +161,10 @@
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
   <script>
+    // Your Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyCZGMG8iYHmmkY_MkuPggLDShD0aFqByQ0",
       authDomain: "signalapp-c5d0e.firebaseapp.com",
@@ -119,74 +176,163 @@
     };
 
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
     const db = firebase.firestore();
 
-    const adminEmails = ["pgtechlab@gmail.com"]; // Admin email(s)
+    // Admin credentials
+    const ADMIN_USERNAME = "mrpg0816";
+    const ADMIN_PASSWORD = "Pg@12341435";
 
     const authSection = document.getElementById("authSection");
     const adminPanel = document.getElementById("adminPanel");
-    const requestsDiv = document.getElementById("requests");
+    const loginError = document.getElementById("loginError");
 
-    document.getElementById("adminSignIn").onclick = () => {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider);
-    };
+    // On page load check if admin is logged in via sessionStorage
+    if (sessionStorage.getItem("adminLoggedIn") === "true") {
+      showAdminPanel();
+    }
 
-    auth.onAuthStateChanged(user => {
-      if (user && adminEmails.includes(user.email)) {
-        authSection.style.display = "none";
-        adminPanel.style.display = "block";
-        loadUTRRequests();
+    function login(event) {
+      event.preventDefault();
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value;
+
+      if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+        sessionStorage.setItem("adminLoggedIn", "true");
+        showAdminPanel();
       } else {
-        if (user) auth.signOut();
-        authSection.style.display = "block";
-        adminPanel.style.display = "none";
-        // Don't alert on page load signout to avoid annoyance
+        loginError.textContent = "Invalid username or password";
       }
-    });
+      return false;
+    }
+
+    function showAdminPanel() {
+      authSection.style.display = "none";
+      adminPanel.style.display = "block";
+      loadSubscriptions();
+    }
 
     function logout() {
-      auth.signOut();
+      sessionStorage.removeItem("adminLoggedIn");
       location.reload();
     }
 
-    async function loadUTRRequests() {
+    async function loadSubscriptions() {
+      const requestsDiv = document.getElementById("requests");
       const snapshot = await db.collection("subscriptions").orderBy("timestamp", "desc").get();
       requestsDiv.innerHTML = "";
 
       snapshot.forEach(doc => {
         const data = doc.data();
+        const id = doc.id;
+
         const div = document.createElement("div");
-        div.className = `entry ${data.confirmed ? "confirmed" : "not-confirmed"}`;
+        div.className = "entry " + (data.confirmed ? "confirmed" : "not-confirmed");
+        div.setAttribute("data-id", id);
+
         div.innerHTML = `
-          <strong>${data.email}</strong><br />
-          UTR: ${data.utr}<br />
-          Plan: ${data.plan}<br />
-          Confirmed: ${data.confirmed}<br />
-          <button onclick="confirmPayment('${doc.id}')">Confirm</button>
-          <div class="three-dot-menu" onclick="showOptions('${doc.id}')">⋮</div>
+          <div class="entry-row">
+            <label>Email:</label>
+            <input type="email" value="${data.email}" disabled />
+          </div>
+          <div class="entry-row">
+            <label>UTR:</label>
+            <input type="text" value="${data.utr}" disabled />
+          </div>
+          <div class="entry-row">
+            <label>Plan:</label>
+            <input type="text" value="${data.plan}" disabled />
+          </div>
+          <div class="entry-row">
+            <label>Confirmed:</label>
+            <input type="checkbox" ${data.confirmed ? "checked" : ""} disabled />
+          </div>
+          <button onclick="editSubscription('${id}', this)">Edit</button>
+          <button onclick="removeSubscription('${id}')">Remove</button>
         `;
+
         requestsDiv.appendChild(div);
       });
     }
 
-    async function confirmPayment(docId) {
-      try {
-        await db.collection("subscriptions").doc(docId).update({
-          confirmed: true
-        });
-        alert("Confirmed subscription.");
-        loadUTRRequests();
-      } catch (err) {
-        alert("Error confirming: " + err.message);
+    function editSubscription(id, btn) {
+      const entryDiv = btn.parentElement;
+      const inputs = entryDiv.querySelectorAll("input");
+
+      if (btn.textContent === "Edit") {
+        inputs.forEach(input => input.disabled = false);
+        btn.textContent = "Save";
+      } else {
+        const updatedData = {
+          email: inputs[0].value.trim(),
+          utr: inputs[1].value.trim(),
+          plan: inputs[2].value.trim(),
+          confirmed: inputs[3].checked,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        if (!updatedData.email || !updatedData.utr || !updatedData.plan) {
+          alert("Email, UTR, and Plan cannot be empty.");
+          return;
+        }
+
+        db.collection("subscriptions").doc(id).update(updatedData)
+          .then(() => {
+            inputs.forEach(input => input.disabled = true);
+            btn.textContent = "Edit";
+            loadSubscriptions();
+            alert("Subscription updated!");
+          })
+          .catch(err => alert("Error updating subscription: " + err.message));
       }
     }
 
-    function showOptions(docId) {
-      // Example placeholder for 3-dot menu action
-      alert("Options menu clicked for ID: " + docId);
-      // You can expand this to show a dropdown menu, edit, delete, etc.
+    async function removeSubscription(id) {
+      if (confirm("Are you sure you want to remove this subscription?")) {
+        try {
+          await db.collection("subscriptions").doc(id).delete();
+          alert("Subscription removed.");
+          loadSubscriptions();
+        } catch (err) {
+          alert("Error removing subscription: " + err.message);
+        }
+      }
+    }
+
+    async function addSubscription() {
+      const email = document.getElementById("newEmail").value.trim();
+      const utr = document.getElementById("newUTR").value.trim();
+      const plan = document.getElementById("newPlan").value.trim();
+      const confirmed = document.getElementById("newConfirmed").checked;
+      const status = document.getElementById("addSubStatus");
+
+      if (!email || !utr || !plan) {
+        alert("Please fill all required fields.");
+        return;
+      }
+
+      status.textContent = "";
+
+      try {
+        await db.collection("subscriptions").add({
+          email,
+          utr,
+          plan,
+          confirmed,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        status.textContent = "Subscription added!";
+        document.getElementById("newEmail").value = "";
+        document.getElementById("newUTR").value = "";
+        document.getElementById("newPlan").value = "";
+        document.getElementById("newConfirmed").checked = false;
+        loadSubscriptions();
+        setTimeout(() => {
+          status.textContent = "";
+        }, 4000);
+      } catch (err) {
+        alert("Error adding subscription: " + err.message);
+      }
     }
 
     async function postSignal() {
