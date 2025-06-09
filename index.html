@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>Forex with PG </title>
+  <meta charset="UTF-8" />
+  <title>Forex with PG</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
 
@@ -35,6 +35,7 @@
       cursor: pointer;
       box-shadow: 0 4px 10px rgba(0,0,0,0.3);
       transition: transform 0.2s ease;
+      margin: 10px;
     }
 
     button:hover {
@@ -65,35 +66,59 @@
       font-style: italic;
       color: #00ffcc;
     }
+
+    ul {
+      list-style: none;
+      padding-left: 0;
+      max-width: 400px;
+      text-align: left;
+    }
+
+    ul li {
+      background: #222;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
   </style>
 </head>
 <body>
 
-  <h1>📈 Signal App</h1>
+  <h1>📈 Forex with PG </h1>
 
+  <!-- Sign in -->
   <div id="authSection">
     <button id="googleSignIn">Sign in with Google</button>
   </div>
 
+  <!-- After login -->
   <div id="userSection" style="display:none;">
     <p id="userEmail"></p>
     <button id="logoutBtn">Logout</button>
 
-    <div id="paymentSection">
+    <!-- Subscription Plans -->
+    <div id="plansSection" style="margin-top:20px;">
+      <h2>Choose Subscription Plan</h2>
+      <button data-plan="weekly" class="planBtn">Weekly - ₹499</button>
+      <button data-plan="monthly" class="planBtn">Monthly - ₹999</button>
+      <button data-plan="3months" class="planBtn">3 Months - ₹2499</button>
+    </div>
+
+    <!-- Payment Section (hidden initially) -->
+    <div id="paymentSection" style="display:none; margin-top:30px;">
       <h2>💳 Pay & Submit UTR</h2>
-      <img id="qr" src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=yourupi@bank&pn=SignalApp&am=499&cu=INR" alt="QR Code for UPI" width="200">
+      <img id="qr" src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=yourupi@bank&pn=SignalApp&am=499&cu=INR" alt="QR Code for UPI" width="200" />
       <p>Scan to pay and enter UTR below:</p>
       <input type="text" id="utr" placeholder="Enter UTR Number" />
-      <select id="plan">
-        <option value="weekly">Weekly</option>
-        <option value="monthly">Monthly</option>
-        <option value="3months">3 Months</option>
-      </select><br/>
-      <button onclick="submitUTR()">Submit UTR</button>
+      <p>Selected Plan: <span id="selectedPlan"></span></p>
+      <button id="submitUTRBtn">Submit UTR</button>
       <p id="statusMsg"></p>
     </div>
 
-    <div id="signalsSection" style="display:none;">
+    <!-- Trade signals (for confirmed users) -->
+    <div id="signalsSection" style="display:none; margin-top:30px;">
       <h2>📢 Trade Signals</h2>
       <ul id="signalsList"></ul>
     </div>
@@ -120,66 +145,117 @@
     const authSection = document.getElementById('authSection');
     const userSection = document.getElementById('userSection');
     const userEmailDisplay = document.getElementById('userEmail');
+    const plansSection = document.getElementById('plansSection');
+    const paymentSection = document.getElementById('paymentSection');
+    const selectedPlanDisplay = document.getElementById('selectedPlan');
+    const statusMsg = document.getElementById('statusMsg');
     const signalsSection = document.getElementById('signalsSection');
     const signalsList = document.getElementById('signalsList');
-    const statusMsg = document.getElementById('statusMsg');
 
+    let selectedPlan = null;
+
+    // Sign in with Google
     document.getElementById('googleSignIn').onclick = () => {
       const provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider);
+      auth.signInWithPopup(provider).catch(e => alert(e.message));
     };
 
+    // Logout
     document.getElementById('logoutBtn').onclick = () => {
       auth.signOut();
     };
 
+    // On Auth state change
     auth.onAuthStateChanged(async user => {
       if (user) {
         authSection.style.display = 'none';
         userSection.style.display = 'block';
         userEmailDisplay.textContent = 'Welcome, ' + user.email;
 
+        // Check subscription status
         const doc = await db.collection("subscriptions").doc(user.email).get();
         if (doc.exists && doc.data().confirmed) {
+          // Show signals directly if confirmed
+          plansSection.style.display = 'none';
+          paymentSection.style.display = 'none';
+          statusMsg.textContent = "";
           showSignals();
         } else {
-          statusMsg.textContent = "Submit UTR to access signals.";
+          // Show plans, hide signals
+          plansSection.style.display = 'block';
+          paymentSection.style.display = 'none';
+          signalsSection.style.display = 'none';
+          statusMsg.textContent = "Please select a plan and submit your payment UTR.";
         }
       } else {
         authSection.style.display = 'block';
         userSection.style.display = 'none';
+        plansSection.style.display = 'none';
+        paymentSection.style.display = 'none';
         signalsSection.style.display = 'none';
+        statusMsg.textContent = "";
       }
     });
 
-    async function submitUTR() {
-      const utr = document.getElementById("utr").value.trim();
-      const plan = document.getElementById("plan").value;
-      const email = auth.currentUser.email;
+    // Plan buttons click
+    document.querySelectorAll('.planBtn').forEach(btn => {
+      btn.onclick = () => {
+        selectedPlan = btn.getAttribute('data-plan');
+        selectedPlanDisplay.textContent = btn.textContent;
+        plansSection.style.display = 'none';
+        paymentSection.style.display = 'block';
 
-      if (!utr) return alert("Enter UTR number");
+        // Update QR code amount based on plan
+        let amount = "499";
+        if (selectedPlan === "weekly") amount = "499";
+        else if (selectedPlan === "monthly") amount = "999";
+        else if (selectedPlan === "3months") amount = "2499";
+
+        const qr = document.getElementById('qr');
+        const upiString = `upi://pay?pa=yourupi@bank&pn=SignalApp&am=${amount}&cu=INR`;
+        qr.src = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(upiString)}`;
+      };
+    });
+
+    // Submit UTR button
+    document.getElementById('submitUTRBtn').onclick = async () => {
+      const utr = document.getElementById('utr').value.trim();
+      if (!utr) {
+        alert("Please enter your UTR number.");
+        return;
+      }
+      if (!selectedPlan) {
+        alert("Please select a subscription plan first.");
+        return;
+      }
+
+      const email = auth.currentUser.email;
 
       await db.collection("subscriptions").doc(email).set({
         email: email,
         utr: utr,
-        plan: plan,
+        plan: selectedPlan,
         confirmed: false,
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
       });
 
-      statusMsg.textContent = "UTR submitted. Waiting for admin confirmation.";
-    }
+      statusMsg.textContent = "UTR submitted successfully. Waiting for admin confirmation.";
+      paymentSection.style.display = 'none';
+    };
 
+    // Show trade signals
     async function showSignals() {
+      signalsSection.style.display = 'block';
+      signalsList.innerHTML = '';
+
       const querySnapshot = await db.collection("signals").orderBy("timestamp", "desc").get();
-      signalsList.innerHTML = "";
       querySnapshot.forEach(doc => {
-        const li = document.createElement("li");
+        const li = document.createElement('li');
         li.textContent = doc.data().message;
         signalsList.appendChild(li);
       });
-      signalsSection.style.display = 'block';
     }
   </script>
+
 </body>
 </html>
