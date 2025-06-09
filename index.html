@@ -83,66 +83,135 @@
     <h2>You selected: <span id="planName"></span></h2>
     <p>Amount: ₹<span id="planPrice"></span></p>
 
-    <form id="utrForm" action="https://formsubmit.co/pgtechlab@gmail.com" method="POST" target="_blank">
-      <input type="hidden" name="_subject" value="New UTR Submission" />
-      <input type="hidden" name="Plan" id="formPlan" value="" />
-      <input type="email" name="Email" placeholder="Your Email" required />
-      <input type="text" name="UTR" placeholder="Enter UTR Number" required />
-      <!-- Disable CAPTCHA, redirect back to thank you page -->
-      <input type="hidden" name="_captcha" value="false" />
-      <input type="hidden" name="_next" value="https://pgtechlab.github.io/thankyou.html" />
+    <form id="utrForm">
+      <input type="email" id="email" placeholder="Your Email" required />
+      <input type="text" id="utr" placeholder="Enter UTR Number" required />
       <button type="submit">Submit UTR</button>
     </form>
 
     <button onclick="changePlan()">Change Plan</button>
   </div>
 
+  <div id="message" class="message"></div>
+
   <div id="signalsSection" style="display:none;">
     <h2>Your Trade Signals</h2>
-    <div class="signals" id="signalsContainer">
-      <!-- Signals loaded here -->
-    </div>
+    <div class="signals" id="signalsContainer"></div>
   </div>
 </div>
 
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
 <script>
+  // Paste your Firebase config here:
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyCZGMG8iYHmmkY_MkuPggLDShD0aFqByQ0",
+  authDomain: "signalapp-c5d0e.firebaseapp.com",
+  projectId: "signalapp-c5d0e",
+  storageBucket: "signalapp-c5d0e.firebasestorage.app",
+  messagingSenderId: "515390269998",
+  appId: "1:515390269998:web:4231b1a25e611cfd978dbf",
+  measurementId: "G-FF980DKDS2"
+};
+
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
   let selectedPlan = '';
+  let selectedPrice = 0;
 
   function selectPlan(name, price) {
     selectedPlan = name;
+    selectedPrice = price;
     document.getElementById('planName').innerText = name;
     document.getElementById('planPrice').innerText = price;
-    document.getElementById('formPlan').value = name;
 
     document.getElementById('plans').style.display = 'none';
     document.getElementById('selectedPlanSection').style.display = 'block';
     document.getElementById('signalsSection').style.display = 'none';
+    document.getElementById('message').innerText = '';
   }
 
   function changePlan() {
     selectedPlan = '';
+    selectedPrice = 0;
     document.getElementById('plans').style.display = 'block';
     document.getElementById('selectedPlanSection').style.display = 'none';
     document.getElementById('signalsSection').style.display = 'none';
+    document.getElementById('message').innerText = '';
   }
 
-  // Placeholder: after admin confirms payment (real app will fetch this from DB)
-  // For demo, signals will be shown manually or by polling backend
+  document.getElementById('utrForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
 
-  function showSignals(signals) {
-    const container = document.getElementById('signalsContainer');
-    container.innerHTML = ''; // Clear
-    signals.forEach(signal => {
-      const div = document.createElement('div');
-      div.textContent = signal;
-      container.appendChild(div);
-    });
+    const email = document.getElementById('email').value.trim();
+    const utr = document.getElementById('utr').value.trim();
+
+    if(!email || !utr || !selectedPlan){
+      alert('Please fill all fields and select a plan');
+      return;
+    }
+
+    try {
+      // Save subscription with confirmed=false
+      await db.collection('subscriptions').doc(email).set({
+        email,
+        plan: selectedPlan,
+        utr,
+        confirmed: false,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      document.getElementById('message').innerText = 
+        'UTR submitted! Please wait for admin confirmation.';
+
+      // Start polling for confirmation
+      pollConfirmation(email);
+
+    } catch (error) {
+      console.error('Error saving subscription:', error);
+      alert('Failed to submit UTR. Try again.');
+    }
+  });
+
+  async function pollConfirmation(email) {
+    const docRef = db.collection('subscriptions').doc(email);
+
+    const intervalId = setInterval(async () => {
+      const doc = await docRef.get();
+      if(doc.exists){
+        const data = doc.data();
+        if(data.confirmed){
+          clearInterval(intervalId);
+          document.getElementById('message').innerText = 'Payment confirmed! Loading trade signals...';
+          loadSignals();
+        }
+      }
+    }, 5000);
+  }
+
+  async function loadSignals() {
+    const signalsContainer = document.getElementById('signalsContainer');
+    signalsContainer.innerHTML = 'Loading...';
+
+    const signalsSnapshot = await db.collection('signals').orderBy('timestamp', 'desc').get();
+    if(signalsSnapshot.empty){
+      signalsContainer.innerHTML = 'No signals available yet.';
+    } else {
+      signalsContainer.innerHTML = '';
+      signalsSnapshot.forEach(doc => {
+        const signal = doc.data().message;
+        const div = document.createElement('div');
+        div.textContent = signal;
+        signalsContainer.appendChild(div);
+      });
+    }
     document.getElementById('signalsSection').style.display = 'block';
   }
-
-  // Example: load signals after payment confirmation (demo only)
-  // In real app, check user payment status from DB here and load signals.
-
 </script>
 
 </body>
