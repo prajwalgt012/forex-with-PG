@@ -2,245 +2,135 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Forex Signals - PG</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0; padding: 0;
-      background: #f9f9f9;
-      color: #333;
+    :root {
+      --primary-color: #00ff99;
+      --background-color: #0d1117;
+      --box-color: #161b22;
+      --text-color: #ffffff;
     }
 
-    .container {
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background-color: var(--background-color);
+      color: var(--text-color);
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .box {
+      background-color: var(--box-color);
+      border: 2px solid var(--primary-color);
+      border-radius: 16px;
+      padding: 30px;
+      width: 90%;
       max-width: 400px;
-      margin: 0 auto;
-      padding: 20px;
+      box-shadow: 0 0 20px rgba(0, 255, 153, 0.3);
     }
 
     h1, h2 {
+      color: var(--primary-color);
       text-align: center;
       margin-bottom: 20px;
     }
 
-    input, select, button {
+    input, select {
       width: 100%;
-      padding: 10px;
-      margin-bottom: 15px;
-      font-size: 16px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      box-sizing: border-box;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 2px solid var(--primary-color);
+      background-color: #0d1117;
+      color: var(--text-color);
     }
 
     button {
-      background-color: #007bff;
-      color: white;
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      background-color: var(--primary-color);
+      color: #000;
+      font-weight: bold;
       border: none;
+      border-radius: 10px;
       cursor: pointer;
+      transition: background 0.3s ease;
     }
 
     button:hover {
-      background-color: #0056b3;
+      background-color: #00e68a;
     }
 
     #qr {
       display: block;
       margin: 20px auto;
-      width: 200px;
-    }
-
-    .menu {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-    }
-
-    .menu-content {
-      display: none;
-      position: absolute;
-      right: 0;
       background: white;
-      border: 1px solid #ccc;
+      border-radius: 10px;
       padding: 10px;
-      width: 200px;
+      border: 2px solid var(--primary-color);
     }
 
-    .menu-content p {
-      margin: 0 0 10px;
+    #statusMsg {
+      color: var(--primary-color);
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    #menuBtn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: none;
+      border: none;
+      color: var(--primary-color);
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    #profileMenu {
+      position: absolute;
+      top: 60px;
+      right: 20px;
+      background: var(--box-color);
+      border: 1px solid var(--primary-color);
+      border-radius: 10px;
+      padding: 10px;
+      display: none;
+    }
+
+    #profileMenu p {
+      margin: 8px 0;
+      font-size: 14px;
     }
 
     ul {
       list-style: none;
-      padding: 0;
+      padding-left: 0;
     }
-
-    ul li {
-      padding: 8px;
-      border-bottom: 1px solid #ddd;
-    }
-
-    .hidden { display: none; }
   </style>
 </head>
 <body>
-
-  <div class="menu">
-    <button onclick="toggleMenu()">☰</button>
-    <div id="menuContent" class="menu-content">
-      <p id="userEmail"></p>
-      <p id="planInfo"></p>
-      <button onclick="logout()">Logout</button>
-    </div>
+  <button id="menuBtn">⋮</button>
+  <div id="profileMenu">
+    <p id="userEmail"></p>
+    <p id="planInfo"></p>
+    <button onclick="logout()">Logout</button>
   </div>
 
-  <div class="container">
-    <!-- Authentication -->
-    <div id="authSection">
-      <h1>Forex with PG</h1>
-      <button onclick="signIn()">Login with Google</button>
-    </div>
-
-    <!-- Plan Selection -->
-    <div id="plansSection" class="hidden">
-      <h2>Select Plan</h2>
-      <select id="plan">
-        <option value="weekly">Weekly - ₹499</option>
-        <option value="monthly">Monthly - ₹1499</option>
-        <option value="3months">3 Months - ₹3999</option>
-      </select>
-      <button onclick="showPayment()">Next</button>
-    </div>
-
-    <!-- Payment -->
-    <div id="paymentSection" class="hidden">
-      <h2>Pay via UPI</h2>
-      <img id="qr" src="" alt="QR Code" />
-      <input id="utr" placeholder="Enter UTR Number" />
-      <button onclick="submitUTR()">Submit</button>
-      <p id="statusMsg"></p>
-    </div>
-
-    <!-- Thank You -->
-    <div id="thankYouSection" class="hidden">
-      <h2>Thank You!</h2>
-      <p>Please wait while admin confirms your payment.</p>
-    </div>
-
-    <!-- Signal List -->
-    <div id="signalsSection" class="hidden">
-      <h2>Live Signals</h2>
-      <ul id="signalsList"></ul>
-    </div>
+  <div class="box" id="authSection">
+    <h1>📈 Forex with PG</h1>
+    <button id="googleSignIn">Sign in with Google</button>
   </div>
-
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-  <script>
-    // ✅ Your Firebase Config
-    const firebaseConfig = {
-      apiKey: "AIzaSyCZGMG8iYHmmkY_MkuPggLDShD0aFqByQ0",
-      authDomain: "signalapp-c5d0e.firebaseapp.com",
-      projectId: "signalapp-c5d0e",
-      storageBucket: "signalapp-c5d0e.firebasestorage.app",
-      messagingSenderId: "515390269998",
-      appId: "1:515390269998:web:4231b1a25e611cfd978dbf",
-      measurementId: "G-FF980DKDS2"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-
-    const authSection = document.getElementById("authSection");
-    const plansSection = document.getElementById("plansSection");
-    const paymentSection = document.getElementById("paymentSection");
-    const thankYouSection = document.getElementById("thankYouSection");
-    const signalsSection = document.getElementById("signalsSection");
-    const statusMsg = document.getElementById("statusMsg");
-    const userEmail = document.getElementById("userEmail");
-    const planInfo = document.getElementById("planInfo");
-
-    function toggleMenu() {
-      const menu = document.getElementById("menuContent");
-      menu.style.display = menu.style.display === "block" ? "none" : "block";
-    }
-
-    function showSection(section) {
-      [authSection, plansSection, paymentSection, thankYouSection, signalsSection].forEach(sec => {
-        sec.classList.add("hidden");
-      });
-      section.classList.remove("hidden");
-    }
-
-    function signIn() {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider);
-    }
-
-    function logout() {
-      auth.signOut();
-    }
-
-    auth.onAuthStateChanged(async user => {
-      if (user) {
-        userEmail.textContent = user.email;
-        const sub = await db.collection("subscriptions").doc(user.email).get();
-        if (sub.exists) {
-          const data = sub.data();
-          planInfo.textContent = "Plan: " + data.plan;
-          if (data.confirmed) showSignals();
-          else showSection(thankYouSection);
-        } else {
-          showSection(plansSection);
-        }
-      } else {
-        showSection(authSection);
-      }
-    });
-
-    function showPayment() {
-      const plan = document.getElementById("plan").value;
-      let amount = plan === 'monthly' ? 1499 : plan === '3months' ? 3999 : 499;
-      document.getElementById("qr").src =
-        `https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=yourupi@bank&pn=PGSignalApp&am=${amount}&cu=INR`;
-      showSection(paymentSection);
-    }
-
-    async function submitUTR() {
-      const utr = document.getElementById("utr").value.trim();
-      const plan = document.getElementById("plan").value;
-      const email = auth.currentUser.email;
-      if (!utr) return alert("Enter UTR");
-
-      statusMsg.textContent = "Submitting...";
-      await db.collection("subscriptions").doc(email).set({
-        email,
-        utr,
-        plan,
-        confirmed: false,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      });
-      statusMsg.textContent = "Submitted.";
-      showSection(thankYouSection);
-    }
-
-    async function showSignals() {
-      showSection(signalsSection);
-      const list = document.getElementById("signalsList");
-      list.innerHTML = "";
-      const snapshot = await db.collection("signals").orderBy("timestamp", "desc").get();
-      if (snapshot.empty) {
-        list.innerHTML = "<li>No signals available.</li>";
-      } else {
-        snapshot.forEach(doc => {
-          const li = document.createElement("li");
-          li.textContent = doc.data().message;
-          list.appendChild(li);
-        });
-      }
-    }
-  </script>
 </body>
 </html>
