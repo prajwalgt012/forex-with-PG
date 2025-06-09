@@ -1,80 +1,154 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Admin Panel - Signal App</title>
+  <title>Forex with PG</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
+
     body {
-      background: #111;
-      color: #fff;
-      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      font-family: 'Montserrat', sans-serif;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      color: white;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .box {
+      background-color: #1c1c1c;
+      border-radius: 16px;
       padding: 30px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
     }
 
     h1, h2 {
       color: #ffd700;
+      text-align: center;
     }
 
     button {
-      padding: 8px 16px;
-      background-color: #ffd700;
-      color: black;
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      background: linear-gradient(to right, #ffd700, #ffb700);
+      border: none;
+      color: #111;
       font-weight: bold;
-      border: none;
-      border-radius: 6px;
+      border-radius: 10px;
       cursor: pointer;
-      margin-right: 8px;
     }
 
-    input, textarea {
-      padding: 10px;
-      width: 300px;
-      margin: 10px 0;
-      border-radius: 5px;
-      border: none;
-    }
-
-    .entry {
-      background: #222;
-      padding: 15px;
-      margin: 10px 0;
+    input, select {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
       border-radius: 8px;
+      border: none;
+      background-color: #333;
+      color: white;
     }
 
-    .confirmed {
-      border-left: 4px solid #00ff00;
+    #qr {
+      display: block;
+      margin: 20px auto;
+      background: white;
+      border-radius: 10px;
+      padding: 10px;
+      border: 2px solid #ffd700;
     }
 
-    .not-confirmed {
-      border-left: 4px solid red;
+    #statusMsg {
+      color: #00ffcc;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    #menuBtn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: none;
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    #profileMenu {
+      position: absolute;
+      top: 60px;
+      right: 20px;
+      background: #222;
+      border: 1px solid #555;
+      border-radius: 10px;
+      padding: 10px;
+      display: none;
+    }
+
+    #profileMenu p {
+      margin: 8px 0;
+      font-size: 14px;
+    }
+
+    ul {
+      list-style: none;
+      padding-left: 0;
     }
   </style>
 </head>
 <body>
-
-  <h1>🔐 Admin Panel</h1>
-
-  <div id="authSection">
-    <button id="adminSignIn">Sign in with Google</button>
-  </div>
-
-  <div id="adminPanel" style="display:none;">
+  <button id="menuBtn">⋮</button>
+  <div id="profileMenu">
+    <p id="userEmail"></p>
+    <p id="planInfo"></p>
     <button onclick="logout()">Logout</button>
-
-    <h2>📝 Subscription Requests</h2>
-    <div id="requests"></div>
-
-    <h2>📢 Post Trade Signal</h2>
-    <textarea id="signalMsg" placeholder="Enter trade signal message"></textarea><br>
-    <button onclick="postSignal()">Post Signal</button>
-    <p id="postStatus"></p>
   </div>
 
-  <!-- Firebase SDK -->
+  <div class="box" id="authSection">
+    <h1>📈 Forex with PG</h1>
+    <button id="googleSignIn">Sign in with Google</button>
+  </div>
+
+  <div class="box" id="plansSection" style="display:none;">
+    <h2>Choose a Plan</h2>
+    <select id="plan">
+      <option value="weekly">Weekly - ₹499</option>
+      <option value="monthly">Monthly - ₹1499</option>
+      <option value="3months">3 Months - ₹3999</option>
+    </select>
+    <button onclick="showPayment()">Purchase</button>
+  </div>
+
+  <div class="box" id="paymentSection" style="display:none;">
+    <h2>💳 UPI Payment</h2>
+    <img id="qr" src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=yourupi@bank&pn=PGSignalApp&am=499&cu=INR" width="200" alt="QR Code">
+    <p>Enter UTR number after payment:</p>
+    <input type="text" id="utr" placeholder="Enter UTR Number">
+    <button onclick="submitUTR()">Submit UTR</button>
+    <p id="statusMsg"></p>
+  </div>
+
+  <div class="box" id="thankYouSection" style="display:none;">
+    <h2>🎉 Thank You!</h2>
+    <p>Your payment has been submitted.</p>
+    <small>Please wait while admin confirms your payment.</small>
+  </div>
+
+  <div class="box" id="signalsSection" style="display:none;">
+    <h2>📢 Trade Signals</h2>
+    <ul id="signalsList"></ul>
+  </div>
+
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyCZGMG8iYHmmkY_MkuPggLDShD0aFqByQ0",
@@ -90,69 +164,92 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    const adminEmails = ["pgtechlab@gmail.com"]; // Add admin emails here
-
     const authSection = document.getElementById("authSection");
-    const adminPanel = document.getElementById("adminPanel");
-    const requestsDiv = document.getElementById("requests");
+    const plansSection = document.getElementById("plansSection");
+    const paymentSection = document.getElementById("paymentSection");
+    const thankYouSection = document.getElementById("thankYouSection");
+    const signalsSection = document.getElementById("signalsSection");
+    const signalsList = document.getElementById("signalsList");
+    const statusMsg = document.getElementById("statusMsg");
+    const userEmailEl = document.getElementById("userEmail");
+    const planInfoEl = document.getElementById("planInfo");
 
-    document.getElementById("adminSignIn").onclick = () => {
+    document.getElementById("googleSignIn").onclick = () => {
       const provider = new firebase.auth.GoogleAuthProvider();
       auth.signInWithPopup(provider);
     };
 
-    auth.onAuthStateChanged(user => {
-      if (user && adminEmails.includes(user.email)) {
+    function logout() {
+      auth.signOut();
+    }
+
+    document.getElementById("menuBtn").onclick = () => {
+      const menu = document.getElementById("profileMenu");
+      menu.style.display = menu.style.display === "none" ? "block" : "none";
+    };
+
+    auth.onAuthStateChanged(async user => {
+      if (user) {
+        userEmailEl.textContent = "👤 " + user.email;
         authSection.style.display = "none";
-        adminPanel.style.display = "block";
-        loadUTRRequests();
+
+        const doc = await db.collection("subscriptions").doc(user.email).get();
+        if (doc.exists) {
+          const data = doc.data();
+          planInfoEl.textContent = "📅 Plan: " + data.plan;
+
+          if (data.confirmed) {
+            showSignals();
+          } else {
+            thankYouSection.style.display = "block";
+          }
+        } else {
+          plansSection.style.display = "block";
+        }
       } else {
-        auth.signOut();
-        alert("Access denied: Admins only.");
+        authSection.style.display = "block";
+        plansSection.style.display = "none";
+        paymentSection.style.display = "none";
+        thankYouSection.style.display = "none";
+        signalsSection.style.display = "none";
       }
     });
 
-    function logout() {
-      auth.signOut();
-      location.reload();
+    function showPayment() {
+      plansSection.style.display = "none";
+      paymentSection.style.display = "block";
     }
 
-    async function loadUTRRequests() {
-      const snapshot = await db.collection("subscriptions").orderBy("timestamp", "desc").get();
-      requestsDiv.innerHTML = "";
+    async function submitUTR() {
+      const utr = document.getElementById("utr").value.trim();
+      const plan = document.getElementById("plan").value;
+      const email = auth.currentUser.email;
 
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        const div = document.createElement("div");
-        div.className = `entry ${data.confirmed ? "confirmed" : "not-confirmed"}`;
-        div.innerHTML = `
-          <strong>${data.email}</strong><br>
-          UTR: ${data.utr}<br>
-          Plan: ${data.plan}<br>
-          Confirmed: ${data.confirmed}<br>
-          <button onclick="confirmPayment('${data.email}')">Confirm</button>
-        `;
-        requestsDiv.appendChild(div);
-      });
-    }
+      if (!utr) return alert("Please enter UTR number.");
 
-    async function confirmPayment(email) {
-      await db.collection("subscriptions").doc(email).update({
-        confirmed: true
-      });
-      alert("Confirmed " + email);
-      loadUTRRequests();
-    }
-
-    async function postSignal() {
-      const msg = document.getElementById("signalMsg").value.trim();
-      if (!msg) return alert("Enter a message");
-      await db.collection("signals").add({
-        message: msg,
+      await db.collection("subscriptions").doc(email).set({
+        email,
+        utr,
+        plan,
+        confirmed: false,
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
       });
-      document.getElementById("signalMsg").value = "";
-      document.getElementById("postStatus").innerText = "Signal posted!";
+
+      paymentSection.style.display = "none";
+      thankYouSection.style.display = "block";
+    }
+
+    async function showSignals() {
+      thankYouSection.style.display = "none";
+      signalsSection.style.display = "block";
+
+      const querySnapshot = await db.collection("signals").orderBy("timestamp", "desc").get();
+      signalsList.innerHTML = "";
+      querySnapshot.forEach(doc => {
+        const li = document.createElement("li");
+        li.textContent = doc.data().message;
+        signalsList.appendChild(li);
+      });
     }
   </script>
 </body>
