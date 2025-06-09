@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Admin Panel - Signal App</title>
   <style>
     body {
@@ -34,19 +34,51 @@
       border: none;
     }
 
+    /* Each subscription entry box */
     .entry {
       background: #222;
-      padding: 15px;
+      padding: 15px 40px 15px 15px; /* right padding for 3-dot */
       margin: 10px 0;
       border-radius: 8px;
+      position: relative; /* for 3-dot positioning */
+      box-sizing: border-box;
     }
 
+    /* Border color based on confirmation */
     .confirmed {
       border-left: 4px solid #00ff00;
     }
 
     .not-confirmed {
       border-left: 4px solid red;
+    }
+
+    /* 3-dot menu styling */
+    .three-dot-menu {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      font-size: 20px;
+      cursor: pointer;
+      user-select: none;
+      color: #ffd700;
+      font-weight: bold;
+    }
+
+    .three-dot-menu:hover {
+      color: #fff;
+    }
+
+    /* Post Signal textarea and status */
+    #signalMsg {
+      resize: vertical;
+      min-height: 60px;
+    }
+
+    #postStatus {
+      margin-top: 8px;
+      color: #0f0;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -65,7 +97,7 @@
     <div id="requests"></div>
 
     <h2>📢 Post Trade Signal</h2>
-    <textarea id="signalMsg" placeholder="Enter trade signal message"></textarea><br>
+    <textarea id="signalMsg" placeholder="Enter trade signal message"></textarea><br />
     <button onclick="postSignal()">Post Signal</button>
     <p id="postStatus"></p>
   </div>
@@ -90,7 +122,7 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    const adminEmails = ["pgtechlab@gmail.com"]; // Add admin emails here
+    const adminEmails = ["pgtechlab@gmail.com"]; // Admin email(s)
 
     const authSection = document.getElementById("authSection");
     const adminPanel = document.getElementById("adminPanel");
@@ -107,8 +139,10 @@
         adminPanel.style.display = "block";
         loadUTRRequests();
       } else {
-        auth.signOut();
-        alert("Access denied: Admins only.");
+        if (user) auth.signOut();
+        authSection.style.display = "block";
+        adminPanel.style.display = "none";
+        // Don't alert on page load signout to avoid annoyance
       }
     });
 
@@ -126,33 +160,51 @@
         const div = document.createElement("div");
         div.className = `entry ${data.confirmed ? "confirmed" : "not-confirmed"}`;
         div.innerHTML = `
-          <strong>${data.email}</strong><br>
-          UTR: ${data.utr}<br>
-          Plan: ${data.plan}<br>
-          Confirmed: ${data.confirmed}<br>
-          <button onclick="confirmPayment('${data.email}')">Confirm</button>
+          <strong>${data.email}</strong><br />
+          UTR: ${data.utr}<br />
+          Plan: ${data.plan}<br />
+          Confirmed: ${data.confirmed}<br />
+          <button onclick="confirmPayment('${doc.id}')">Confirm</button>
+          <div class="three-dot-menu" onclick="showOptions('${doc.id}')">⋮</div>
         `;
         requestsDiv.appendChild(div);
       });
     }
 
-    async function confirmPayment(email) {
-      await db.collection("subscriptions").doc(email).update({
-        confirmed: true
-      });
-      alert("Confirmed " + email);
-      loadUTRRequests();
+    async function confirmPayment(docId) {
+      try {
+        await db.collection("subscriptions").doc(docId).update({
+          confirmed: true
+        });
+        alert("Confirmed subscription.");
+        loadUTRRequests();
+      } catch (err) {
+        alert("Error confirming: " + err.message);
+      }
+    }
+
+    function showOptions(docId) {
+      // Example placeholder for 3-dot menu action
+      alert("Options menu clicked for ID: " + docId);
+      // You can expand this to show a dropdown menu, edit, delete, etc.
     }
 
     async function postSignal() {
       const msg = document.getElementById("signalMsg").value.trim();
       if (!msg) return alert("Enter a message");
-      await db.collection("signals").add({
-        message: msg,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      });
-      document.getElementById("signalMsg").value = "";
-      document.getElementById("postStatus").innerText = "Signal posted!";
+      try {
+        await db.collection("signals").add({
+          message: msg,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        document.getElementById("signalMsg").value = "";
+        document.getElementById("postStatus").innerText = "Signal posted!";
+        setTimeout(() => {
+          document.getElementById("postStatus").innerText = "";
+        }, 3000);
+      } catch (err) {
+        alert("Error posting signal: " + err.message);
+      }
     }
   </script>
 </body>
