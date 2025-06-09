@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Forex with PG</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Forex Signals - PG</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
-
-    body {
+    /* Modern UI Styles */
+    html, body {
       margin: 0;
       padding: 0;
       font-family: 'Montserrat', sans-serif;
@@ -15,91 +15,142 @@
       color: white;
       height: 100vh;
       display: flex;
-      align-items: center;
       justify-content: center;
+      align-items: center;
     }
 
     .box {
-      background-color: #1c1c1c;
+      display: none;
+      background: #1e1e1e;
       border-radius: 16px;
       padding: 30px;
       width: 90%;
       max-width: 400px;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.4s ease;
+    }
+
+    .box.visible {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
     }
 
     h1, h2 {
-      color: #ffd700;
       text-align: center;
-    }
-
-    button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 10px;
-      background: linear-gradient(to right, #ffd700, #ffb700);
-      border: none;
-      color: #111;
-      font-weight: bold;
-      border-radius: 10px;
-      cursor: pointer;
+      color: #ffd700;
     }
 
     input, select {
       width: 100%;
       padding: 12px;
       margin: 8px 0;
-      border-radius: 8px;
+      border-radius: 10px;
       border: none;
-      background-color: #333;
+      background: #333;
       color: white;
+      font-size: 15px;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      box-shadow: 0 0 8px #ffd700;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 12px;
+      background: linear-gradient(to right, #ffd700, #ffb700);
+      border: none;
+      color: #111;
+      font-weight: 700;
+      font-size: 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(255, 183, 0, 0.3);
+      transition: 0.3s ease;
+    }
+
+    button:hover:not(:disabled) {
+      background: linear-gradient(to right, #ffec00, #ffa500);
+    }
+
+    button:disabled {
+      background: #555;
+      cursor: not-allowed;
+      color: #aaa;
     }
 
     #qr {
       display: block;
       margin: 20px auto;
-      background: white;
-      border-radius: 10px;
+      border: 3px solid #ffd700;
+      border-radius: 12px;
       padding: 10px;
-      border: 2px solid #ffd700;
+      background: white;
+      max-width: 220px;
     }
 
     #statusMsg {
-      color: #00ffcc;
+      margin-top: 15px;
       text-align: center;
-      margin-top: 10px;
+      color: #00ffd7;
+      font-weight: 600;
     }
 
     #menuBtn {
       position: absolute;
       top: 20px;
       right: 20px;
+      font-size: 28px;
+      color: white;
+      cursor: pointer;
       background: none;
       border: none;
-      color: white;
-      font-size: 24px;
-      cursor: pointer;
     }
 
     #profileMenu {
+      display: none;
       position: absolute;
       top: 60px;
       right: 20px;
       background: #222;
-      border: 1px solid #555;
-      border-radius: 10px;
-      padding: 10px;
-      display: none;
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+      min-width: 220px;
     }
 
     #profileMenu p {
-      margin: 8px 0;
+      margin-bottom: 10px;
       font-size: 14px;
+      color: #ccc;
+    }
+
+    #profileMenu button {
+      background: #444;
+      color: #ffd700;
+      border: none;
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-weight: bold;
+      cursor: pointer;
     }
 
     ul {
       list-style: none;
-      padding-left: 0;
+      padding: 0;
+      margin: 0;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    ul li {
+      border-bottom: 1px solid #444;
+      padding: 10px 0;
     }
   </style>
 </head>
@@ -111,55 +162,56 @@
     <button onclick="logout()">Logout</button>
   </div>
 
+  <!-- Sections -->
   <div class="box" id="authSection">
-    <h1>📈 Forex with PG</h1>
-    <button id="googleSignIn">Sign in with Google</button>
+    <h1>Forex with PG</h1>
+    <button id="googleSignIn">Login with Google</button>
   </div>
 
-  <div class="box" id="plansSection" style="display:none;">
-    <h2>Choose a Plan</h2>
+  <div class="box" id="plansSection">
+    <h2>Select Your Plan</h2>
     <select id="plan">
       <option value="weekly">Weekly - ₹499</option>
       <option value="monthly">Monthly - ₹1499</option>
       <option value="3months">3 Months - ₹3999</option>
     </select>
-    <button onclick="showPayment()">Purchase</button>
+    <button onclick="showPayment()">Next</button>
   </div>
 
-  <div class="box" id="paymentSection" style="display:none;">
-    <h2>💳 UPI Payment</h2>
-    <img id="qr" src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=yourupi@bank&pn=PGSignalApp&am=499&cu=INR" width="200" alt="QR Code">
-    <p>Enter UTR number after payment:</p>
-    <input type="text" id="utr" placeholder="Enter UTR Number">
-    <button onclick="submitUTR()">Submit UTR</button>
-    <p id="statusMsg"></p>
+  <div class="box" id="paymentSection">
+    <h2>Make Payment</h2>
+    <img id="qr" src="" alt="QR Code" />
+    <input id="utr" placeholder="Enter UTR Number"/>
+    <button onclick="submitUTR()">Submit</button>
+    <div id="statusMsg"></div>
   </div>
 
-  <div class="box" id="thankYouSection" style="display:none;">
-    <h2>🎉 Thank You!</h2>
-    <p>Your payment has been submitted.</p>
-    <small>Please wait while admin confirms your payment.</small>
+  <div class="box" id="thankYouSection">
+    <h2>Thank You!</h2>
+    <p style="text-align:center;">🙏 Please wait while admin confirms your payment.</p>
   </div>
 
-  <div class="box" id="signalsSection" style="display:none;">
-    <h2>📢 Trade Signals</h2>
+  <div class="box" id="signalsSection">
+    <h2>📈 Signal List</h2>
     <ul id="signalsList"></ul>
   </div>
 
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCZGMG8iYHmmkY_MkuPggLDShD0aFqByQ0",
-      authDomain: "signalapp-c5d0e.firebaseapp.com",
-      projectId: "signalapp-c5d0e",
-      storageBucket: "signalapp-c5d0e.appspot.com",
-      messagingSenderId: "515390269998",
-      appId: "1:515390269998:web:4231b1a25e611cfd978dbf",
-      measurementId: "G-FF980DKDS2"
-    };
-
+    // Firebase config
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyCZGMG8iYHmmkY_MkuPggLDShD0aFqByQ0",
+  authDomain: "signalapp-c5d0e.firebaseapp.com",
+  projectId: "signalapp-c5d0e",
+  storageBucket: "signalapp-c5d0e.firebasestorage.app",
+  messagingSenderId: "515390269998",
+  appId: "1:515390269998:web:4231b1a25e611cfd978dbf",
+  measurementId: "G-FF980DKDS2"
+};
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
@@ -169,10 +221,29 @@
     const paymentSection = document.getElementById("paymentSection");
     const thankYouSection = document.getElementById("thankYouSection");
     const signalsSection = document.getElementById("signalsSection");
-    const signalsList = document.getElementById("signalsList");
     const statusMsg = document.getElementById("statusMsg");
+
     const userEmailEl = document.getElementById("userEmail");
     const planInfoEl = document.getElementById("planInfo");
+    const menuBtn = document.getElementById("menuBtn");
+    const profileMenu = document.getElementById("profileMenu");
+
+    function showSection(section) {
+      [authSection, plansSection, paymentSection, thankYouSection, signalsSection].forEach(sec => {
+        sec.classList.remove("visible");
+      });
+      section.classList.add("visible");
+    }
+
+    menuBtn.onclick = () => {
+      profileMenu.style.display = profileMenu.style.display === "block" ? "none" : "block";
+    };
+
+    document.addEventListener('click', (e) => {
+      if (!profileMenu.contains(e.target) && !menuBtn.contains(e.target)) {
+        profileMenu.style.display = 'none';
+      }
+    });
 
     document.getElementById("googleSignIn").onclick = () => {
       const provider = new firebase.auth.GoogleAuthProvider();
@@ -183,72 +254,63 @@
       auth.signOut();
     }
 
-    document.getElementById("menuBtn").onclick = () => {
-      const menu = document.getElementById("profileMenu");
-      menu.style.display = menu.style.display === "none" ? "block" : "none";
-    };
-
     auth.onAuthStateChanged(async user => {
       if (user) {
         userEmailEl.textContent = "👤 " + user.email;
-        authSection.style.display = "none";
-
         const doc = await db.collection("subscriptions").doc(user.email).get();
         if (doc.exists) {
           const data = doc.data();
           planInfoEl.textContent = "📅 Plan: " + data.plan;
-
-          if (data.confirmed) {
-            showSignals();
-          } else {
-            thankYouSection.style.display = "block";
-          }
+          if (data.confirmed) showSignals();
+          else showSection(thankYouSection);
         } else {
-          plansSection.style.display = "block";
+          showSection(plansSection);
         }
       } else {
-        authSection.style.display = "block";
-        plansSection.style.display = "none";
-        paymentSection.style.display = "none";
-        thankYouSection.style.display = "none";
-        signalsSection.style.display = "none";
+        showSection(authSection);
       }
     });
 
     function showPayment() {
-      plansSection.style.display = "none";
-      paymentSection.style.display = "block";
+      const plan = document.getElementById("plan").value;
+      let amount = plan === 'monthly' ? 1499 : plan === '3months' ? 3999 : 499;
+      document.getElementById("qr").src = `https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=yourupi@bank&pn=PGSignalApp&am=${amount}&cu=INR`;
+      showSection(paymentSection);
     }
 
     async function submitUTR() {
       const utr = document.getElementById("utr").value.trim();
       const plan = document.getElementById("plan").value;
       const email = auth.currentUser.email;
+      if (!utr) return alert("Enter UTR!");
 
-      if (!utr) return alert("Please enter UTR number.");
-
-      await db.collection("subscriptions").doc(email).set({
-        email,
-        utr,
-        plan,
-        confirmed: false,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      });
-
-      paymentSection.style.display = "none";
-      thankYouSection.style.display = "block";
+      statusMsg.textContent = "Submitting...";
+      try {
+        await db.collection("subscriptions").doc(email).set({
+          email,
+          utr,
+          plan,
+          confirmed: false,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        statusMsg.textContent = "Submitted. Awaiting confirmation.";
+        showSection(thankYouSection);
+      } catch (e) {
+        console.error(e);
+        statusMsg.textContent = "Error! Try again.";
+      }
     }
 
     async function showSignals() {
-      thankYouSection.style.display = "none";
-      signalsSection.style.display = "block";
-
-      const querySnapshot = await db.collection("signals").orderBy("timestamp", "desc").get();
-      signalsList.innerHTML = "";
-      querySnapshot.forEach(doc => {
+      showSection(signalsSection);
+      const list = document.getElementById("signalsList");
+      list.innerHTML = "";
+      const snapshot = await db.collection("signals").orderBy("timestamp", "desc").get();
+      if (snapshot.empty) list.innerHTML = "<li>No signals yet.</li>";
+      else snapshot.forEach(doc => {
         const li = document.createElement("li");
         li.textContent = doc.data().message;
-        signalsList.appendChild(li);
+        list.appendChild(li);
       });
     }
   </script>
