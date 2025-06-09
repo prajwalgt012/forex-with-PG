@@ -27,6 +27,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      flex-direction: column;
     }
 
     .box {
@@ -37,6 +38,7 @@
       width: 90%;
       max-width: 400px;
       box-shadow: 0 0 20px rgba(0, 255, 153, 0.3);
+      margin: 20px auto;
     }
 
     h1, h2 {
@@ -119,6 +121,9 @@
       padding-left: 0;
     }
   </style>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
   <button id="menuBtn">⋮</button>
@@ -132,5 +137,139 @@
     <h1>📈 Forex with PG</h1>
     <button id="googleSignIn">Sign in with Google</button>
   </div>
+
+  <div class="box" id="plansSection" style="display:none;">
+    <h2>Choose a Plan</h2>
+    <select id="plan">
+      <option value="weekly">Weekly - ₹499</option>
+      <option value="monthly">Monthly - ₹1499</option>
+      <option value="3months">3 Months - ₹3999</option>
+    </select>
+    <button onclick="showPayment()">Purchase</button>
+  </div>
+
+  <div class="box" id="paymentSection" style="display:none;">
+    <h2>💳 UPI Payment</h2>
+    <img id="qr" src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=yourupi@bank&pn=PGSignalApp&am=499&cu=INR" width="200" alt="QR Code">
+    <p>Enter UTR number after payment:</p>
+    <input type="text" id="utr" placeholder="Enter UTR Number">
+    <button onclick="submitUTR()">Submit UTR</button>
+    <p id="statusMsg"></p>
+  </div>
+
+  <div class="box" id="thankYouSection" style="display:none;">
+    <h2>🎉 Thank You!</h2>
+    <p>Your payment has been submitted.</p>
+    <small>Please wait while admin confirms your payment.</small>
+  </div>
+
+  <div class="box" id="signalsSection" style="display:none;">
+    <h2>📢 Trade Signals</h2>
+    <ul id="signalsList"></ul>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCZGMG8iYHmmkY_MkuPggLDShD0aFqByQ0",
+      authDomain: "signalapp-c5d0e.firebaseapp.com",
+      projectId: "signalapp-c5d0e",
+      storageBucket: "signalapp-c5d0e.appspot.com",
+      messagingSenderId: "515390269998",
+      appId: "1:515390269998:web:4231b1a25e611cfd978dbf",
+      measurementId: "G-FF980DKDS2"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const authSection = document.getElementById("authSection");
+    const plansSection = document.getElementById("plansSection");
+    const paymentSection = document.getElementById("paymentSection");
+    const thankYouSection = document.getElementById("thankYouSection");
+    const signalsSection = document.getElementById("signalsSection");
+    const signalsList = document.getElementById("signalsList");
+    const statusMsg = document.getElementById("statusMsg");
+    const userEmailEl = document.getElementById("userEmail");
+    const planInfoEl = document.getElementById("planInfo");
+
+    document.getElementById("googleSignIn").onclick = () => {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(provider);
+    };
+
+    function logout() {
+      auth.signOut();
+    }
+
+    document.getElementById("menuBtn").onclick = () => {
+      const menu = document.getElementById("profileMenu");
+      menu.style.display = menu.style.display === "none" ? "block" : "none";
+    };
+
+    auth.onAuthStateChanged(async user => {
+      if (user) {
+        userEmailEl.textContent = "👤 " + user.email;
+        authSection.style.display = "none";
+
+        const doc = await db.collection("subscriptions").doc(user.email).get();
+        if (doc.exists) {
+          const data = doc.data();
+          planInfoEl.textContent = "📅 Plan: " + data.plan;
+
+          if (data.confirmed) {
+            showSignals();
+          } else {
+            thankYouSection.style.display = "block";
+          }
+        } else {
+          plansSection.style.display = "block";
+        }
+      } else {
+        authSection.style.display = "block";
+        plansSection.style.display = "none";
+        paymentSection.style.display = "none";
+        thankYouSection.style.display = "none";
+        signalsSection.style.display = "none";
+      }
+    });
+
+    function showPayment() {
+      plansSection.style.display = "none";
+      paymentSection.style.display = "block";
+    }
+
+    async function submitUTR() {
+      const utr = document.getElementById("utr").value.trim();
+      const plan = document.getElementById("plan").value;
+      const email = auth.currentUser.email;
+
+      if (!utr) return alert("Please enter UTR number.");
+
+      await db.collection("subscriptions").doc(email).set({
+        email,
+        utr,
+        plan,
+        confirmed: false,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      paymentSection.style.display = "none";
+      thankYouSection.style.display = "block";
+    }
+
+    async function showSignals() {
+      thankYouSection.style.display = "none";
+      signalsSection.style.display = "block";
+
+      const querySnapshot = await db.collection("signals").orderBy("timestamp", "desc").get();
+      signalsList.innerHTML = "";
+      querySnapshot.forEach(doc => {
+        const li = document.createElement("li");
+        li.textContent = doc.data().message;
+        signalsList.appendChild(li);
+      });
+    }
+  </script>
 </body>
 </html>
