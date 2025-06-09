@@ -1,27 +1,40 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>Forex with PG</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
 
+    * {
+      box-sizing: border-box;
+    }
+
     body {
+      margin: 0;
       background: linear-gradient(145deg, #0f2027, #203a43, #2c5364);
       color: #fff;
       font-family: 'Montserrat', sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 30px;
       min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
     }
 
-    h1, h2 {
-      font-weight: 700;
-      margin-bottom: 20px;
+    #appContainer {
+      background: #142d4c;
+      border-radius: 16px;
+      padding: 30px;
+      width: 400px;
+      box-shadow: 0 10px 40px rgba(255, 215, 0, 0.4);
+      position: relative;
+    }
+
+    h1 {
       color: #ffd700;
+      text-align: center;
+      margin-bottom: 30px;
     }
 
     button {
@@ -30,104 +43,192 @@
       border: none;
       padding: 12px 25px;
       border-radius: 12px;
-      font-weight: bold;
+      font-weight: 700;
       font-size: 16px;
       cursor: pointer;
       box-shadow: 0 4px 10px rgba(0,0,0,0.3);
       transition: transform 0.2s ease;
-      margin: 10px;
+      width: 100%;
     }
 
     button:hover {
       transform: scale(1.05);
     }
 
-    #qr {
-      margin: 20px;
-      border: 4px solid #ffd700;
-      padding: 10px;
-      border-radius: 10px;
-      background: white;
-    }
-
     input, select {
       padding: 12px;
-      margin: 10px;
-      width: 280px;
+      margin: 10px 0;
+      width: 100%;
       border-radius: 8px;
       border: none;
-      background: #333;
+      background: #1e3c72;
       color: white;
       font-size: 14px;
     }
 
+    /* Three-dot menu */
+    #menuBtn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 30px;
+      height: 30px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 30px;
+      color: #ffd700;
+      user-select: none;
+    }
+
+    #menuDropdown {
+      position: absolute;
+      top: 55px;
+      right: 20px;
+      background: #203a43;
+      border-radius: 10px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+      width: 180px;
+      display: none;
+      flex-direction: column;
+      padding: 10px 0;
+      z-index: 10;
+    }
+
+    #menuDropdown button {
+      background: none;
+      color: #ffd700;
+      padding: 12px 20px;
+      font-weight: 600;
+      text-align: left;
+      width: 100%;
+      border-radius: 0;
+      box-shadow: none;
+    }
+    #menuDropdown button:hover {
+      background: #2c5364;
+      color: #fff;
+    }
+
+    /* Plan Boxes */
+    #plansContainer {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .planBox {
+      background: #203a43;
+      border: 2px solid #ffd700;
+      border-radius: 14px;
+      padding: 20px;
+      font-weight: 700;
+      font-size: 18px;
+      text-align: center;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.2s ease;
+      user-select: none;
+    }
+    .planBox:hover {
+      background: #ffd700;
+      color: #111;
+      transform: scale(1.05);
+    }
+    .planBox.selected {
+      background: #ffb700;
+      color: #111;
+      border-color: #ff9000;
+      transform: scale(1.05);
+    }
+
+    #paymentSection {
+      background: #1e3c72;
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.1);
+    }
+
+    #qr {
+      display: block;
+      margin: 0 auto 15px auto;
+      border: 4px solid #ffd700;
+      padding: 10px;
+      border-radius: 12px;
+      background: white;
+      max-width: 220px;
+      max-height: 220px;
+    }
+
     #statusMsg {
-      margin-top: 10px;
+      margin-top: 15px;
       font-style: italic;
       color: #00ffcc;
+      min-height: 50px;
+      text-align: center;
     }
-
-    ul {
-      list-style: none;
-      padding-left: 0;
-      max-width: 400px;
-      text-align: left;
+    #statusMsg small {
+      display: block;
+      margin-top: 6px;
+      font-size: 12px;
+      color: #a0e9d8;
+      font-style: normal;
     }
-
-    ul li {
-      background: #222;
-      padding: 10px;
-      margin-bottom: 10px;
-      border-radius: 8px;
-      font-size: 14px;
-    }
-
   </style>
 </head>
 <body>
 
-  <h1>📈 Forex with PG </h1>
+  <div id="appContainer">
+    <h1>📈 Signal App</h1>
 
-  <!-- Sign in -->
-  <div id="authSection">
-    <button id="googleSignIn">Sign in with Google</button>
+    <!-- Three-dot menu button -->
+    <button id="menuBtn" title="Profile & Logout" style="display:none;">&#x22EE;</button>
+    <div id="menuDropdown">
+      <button id="profileEmail"></button>
+      <button id="logoutBtn">Logout</button>
+    </div>
+
+    <!-- Auth Section -->
+    <div id="authSection">
+      <button id="googleSignIn">Sign in with Google</button>
+    </div>
+
+    <!-- Logged In Content -->
+    <div id="loggedInSection" style="display:none;">
+
+      <!-- Subscription Plans -->
+      <div id="plansContainer">
+        <div class="planBox" data-plan="weekly">Weekly Plan - ₹499</div>
+        <div class="planBox" data-plan="monthly">Monthly Plan - ₹1299</div>
+        <div class="planBox" data-plan="3months">3 Months Plan - ₹3499</div>
+      </div>
+
+      <!-- Payment Section (hidden initially) -->
+      <div id="paymentSection" style="display:none;">
+        <h2>💳 Pay & Submit UTR</h2>
+        <img id="qr" src="" alt="QR Code for UPI" />
+        <p>Scan to pay and enter UTR below:</p>
+        <input type="text" id="utr" placeholder="Enter UTR Number" />
+        <button id="submitUTRBtn">Submit UTR</button>
+        <p id="statusMsg"></p>
+      </div>
+
+      <!-- Trade Signals Section -->
+      <div id="signalsSection" style="display:none; margin-top: 30px;">
+        <h2>📢 Trade Signals</h2>
+        <ul id="signalsList" style="list-style:none; padding-left:0;"></ul>
+      </div>
+
+    </div>
   </div>
 
-  <!-- After login -->
-  <div id="userSection" style="display:none;">
-    <p id="userEmail"></p>
-    <button id="logoutBtn">Logout</button>
-
-    <!-- Subscription Plans -->
-    <div id="plansSection" style="margin-top:20px;">
-      <h2>Choose Subscription Plan</h2>
-      <button data-plan="weekly" class="planBtn">Weekly - ₹499</button>
-      <button data-plan="monthly" class="planBtn">Monthly - ₹999</button>
-      <button data-plan="3months" class="planBtn">3 Months - ₹2499</button>
-    </div>
-
-    <!-- Payment Section (hidden initially) -->
-    <div id="paymentSection" style="display:none; margin-top:30px;">
-      <h2>💳 Pay & Submit UTR</h2>
-      <img id="qr" src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=yourupi@bank&pn=SignalApp&am=499&cu=INR" alt="QR Code for UPI" width="200" />
-      <p>Scan to pay and enter UTR below:</p>
-      <input type="text" id="utr" placeholder="Enter UTR Number" />
-      <p>Selected Plan: <span id="selectedPlan"></span></p>
-      <button id="submitUTRBtn">Submit UTR</button>
-      <p id="statusMsg"></p>
-    </div>
-
-    <!-- Trade signals (for confirmed users) -->
-    <div id="signalsSection" style="display:none; margin-top:30px;">
-      <h2>📢 Trade Signals</h2>
-      <ul id="signalsList"></ul>
-    </div>
-  </div>
-
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
   <script>
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyCZGMG8iYHmmkY_MkuPggLDShD0aFqByQ0",
       authDomain: "signalapp-c5d0e.firebaseapp.com",
@@ -142,84 +243,82 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
+    // DOM elements
     const authSection = document.getElementById('authSection');
-    const userSection = document.getElementById('userSection');
-    const userEmailDisplay = document.getElementById('userEmail');
-    const plansSection = document.getElementById('plansSection');
+    const loggedInSection = document.getElementById('loggedInSection');
+    const menuBtn = document.getElementById('menuBtn');
+    const menuDropdown = document.getElementById('menuDropdown');
+    const profileEmail = document.getElementById('profileEmail');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    const plansContainer = document.getElementById('plansContainer');
     const paymentSection = document.getElementById('paymentSection');
-    const selectedPlanDisplay = document.getElementById('selectedPlan');
+    const qrImage = document.getElementById('qr');
+    const utrInput = document.getElementById('utr');
+    const submitUTRBtn = document.getElementById('submitUTRBtn');
     const statusMsg = document.getElementById('statusMsg');
+
     const signalsSection = document.getElementById('signalsSection');
     const signalsList = document.getElementById('signalsList');
 
     let selectedPlan = null;
+    let currentUser = null;
+
+    // UPI payment URLs for plans
+    const upiPayments = {
+      weekly: "upi://pay?pa=yourupi@bank&pn=SignalApp&am=499&cu=INR",
+      monthly: "upi://pay?pa=yourupi@bank&pn=SignalApp&am=1299&cu=INR",
+      '3months': "upi://pay?pa=yourupi@bank&pn=SignalApp&am=3499&cu=INR"
+    };
+
+    // Toggle dropdown menu
+    menuBtn.addEventListener('click', () => {
+      if(menuDropdown.style.display === 'flex') {
+        menuDropdown.style.display = 'none';
+      } else {
+        menuDropdown.style.display = 'flex';
+      }
+    });
+
+    // Hide dropdown if clicking outside
+    document.addEventListener('click', e => {
+      if (!menuBtn.contains(e.target) && !menuDropdown.contains(e.target)) {
+        menuDropdown.style.display = 'none';
+      }
+    });
 
     // Sign in with Google
     document.getElementById('googleSignIn').onclick = () => {
       const provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider).catch(e => alert(e.message));
+      auth.signInWithPopup(provider).catch(console.error);
     };
 
     // Logout
-    document.getElementById('logoutBtn').onclick = () => {
+    logoutBtn.onclick = () => {
       auth.signOut();
     };
 
-    // On Auth state change
-    auth.onAuthStateChanged(async user => {
-      if (user) {
-        authSection.style.display = 'none';
-        userSection.style.display = 'block';
-        userEmailDisplay.textContent = 'Welcome, ' + user.email;
+    // Plan selection handler
+    plansContainer.addEventListener('click', e => {
+      if (e.target.classList.contains('planBox')) {
+        // Mark selected visually
+        Array.from(plansContainer.children).forEach(el => el.classList.remove('selected'));
+        e.target.classList.add('selected');
+        selectedPlan = e.target.getAttribute('data-plan');
 
-        // Check subscription status
-        const doc = await db.collection("subscriptions").doc(user.email).get();
-        if (doc.exists && doc.data().confirmed) {
-          // Show signals directly if confirmed
-          plansSection.style.display = 'none';
-          paymentSection.style.display = 'none';
-          statusMsg.textContent = "";
-          showSignals();
-        } else {
-          // Show plans, hide signals
-          plansSection.style.display = 'block';
-          paymentSection.style.display = 'none';
-          signalsSection.style.display = 'none';
-          statusMsg.textContent = "Please select a plan and submit your payment UTR.";
-        }
-      } else {
-        authSection.style.display = 'block';
-        userSection.style.display = 'none';
-        plansSection.style.display = 'none';
-        paymentSection.style.display = 'none';
-        signalsSection.style.display = 'none';
-        statusMsg.textContent = "";
+        // Show payment section with correct QR
+        qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(upiPayments[selectedPlan])}&size=200x200`;
+        paymentSection.style.display = 'block';
+
+        // Clear previous inputs/messages
+        utrInput.value = '';
+        statusMsg.textContent = '';
       }
     });
 
-    // Plan buttons click
-    document.querySelectorAll('.planBtn').forEach(btn => {
-      btn.onclick = () => {
-        selectedPlan = btn.getAttribute('data-plan');
-        selectedPlanDisplay.textContent = btn.textContent;
-        plansSection.style.display = 'none';
-        paymentSection.style.display = 'block';
-
-        // Update QR code amount based on plan
-        let amount = "499";
-        if (selectedPlan === "weekly") amount = "499";
-        else if (selectedPlan === "monthly") amount = "999";
-        else if (selectedPlan === "3months") amount = "2499";
-
-        const qr = document.getElementById('qr');
-        const upiString = `upi://pay?pa=yourupi@bank&pn=SignalApp&am=${amount}&cu=INR`;
-        qr.src = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(upiString)}`;
-      };
-    });
-
-    // Submit UTR button
-    document.getElementById('submitUTRBtn').onclick = async () => {
-      const utr = document.getElementById('utr').value.trim();
+    // Submit UTR payment confirmation
+    submitUTRBtn.onclick = async () => {
+      const utr = utrInput.value.trim();
       if (!utr) {
         alert("Please enter your UTR number.");
         return;
@@ -229,33 +328,87 @@
         return;
       }
 
-      const email = auth.currentUser.email;
+      const email = currentUser.email;
 
-      await db.collection("subscriptions").doc(email).set({
-        email: email,
-        utr: utr,
-        plan: selectedPlan,
-        confirmed: false,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      });
+      try {
+        await db.collection("subscriptions").doc(email).set({
+          email: email,
+          utr: utr,
+          plan: selectedPlan,
+          confirmed: false,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
 
-      statusMsg.textContent = "UTR submitted successfully. Waiting for admin confirmation.";
-      paymentSection.style.display = 'none';
+        // Show thank you message
+        statusMsg.innerHTML = "Thank you for your payment.<br/><small>Please wait, admin will confirm your payment.</small>";
+
+        // Hide payment inputs after submit
+        paymentSection.style.display = 'none';
+      } catch (error) {
+        statusMsg.textContent = "Error submitting UTR. Please try again.";
+        console.error(error);
+      }
     };
 
-    // Show trade signals
+    // Show trade signals for confirmed subscription
     async function showSignals() {
-      signalsSection.style.display = 'block';
       signalsList.innerHTML = '';
-
-      const querySnapshot = await db.collection("signals").orderBy("timestamp", "desc").get();
-      querySnapshot.forEach(doc => {
-        const li = document.createElement('li');
-        li.textContent = doc.data().message;
-        signalsList.appendChild(li);
-      });
+      try {
+        const querySnapshot = await db.collection("signals").orderBy("timestamp", "desc").get();
+        if (querySnapshot.empty) {
+          signalsList.innerHTML = '<li>No signals posted yet.</li>';
+        } else {
+          querySnapshot.forEach(doc => {
+            const li = document.createElement('li');
+            li.textContent = doc.data().message;
+            signalsList.appendChild(li);
+          });
+        }
+        signalsSection.style.display = 'block';
+      } catch (error) {
+        signalsList.innerHTML = '<li>Error loading signals.</li>';
+        console.error(error);
+      }
     }
-  </script>
 
+    // Listen to auth state changes
+    auth.onAuthStateChanged(async user => {
+      if (user) {
+        currentUser = user;
+        authSection.style.display = 'none';
+        loggedInSection.style.display = 'block';
+        menuBtn.style.display = 'block';
+
+        profileEmail.textContent = user.email;
+
+        // Check subscription confirmation
+        const subDoc = await db.collection("subscriptions").doc(user.email).get();
+        if (subDoc.exists && subDoc.data().confirmed) {
+          // Show signals and hide plans + payment
+          plansContainer.style.display = 'none';
+          paymentSection.style.display = 'none';
+          statusMsg.textContent = '';
+          await showSignals();
+        } else {
+          // Show plans, hide signals
+          signalsSection.style.display = 'none';
+          plansContainer.style.display = 'flex';
+          paymentSection.style.display = 'none';
+          statusMsg.textContent = "Submit UTR to access signals.";
+          selectedPlan = null;
+          // Remove plan selection highlight
+          Array.from(plansContainer.children).forEach(el => el.classList.remove('selected'));
+        }
+
+      } else {
+        currentUser = null;
+        authSection.style.display = 'block';
+        loggedInSection.style.display = 'none';
+        menuBtn.style.display = 'none';
+        menuDropdown.style.display = 'none';
+        statusMsg.textContent = '';
+      }
+    });
+  </script>
 </body>
 </html>
