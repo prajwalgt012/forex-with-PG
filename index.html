@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Signal App - Sign Up</title>
+  <title>Signal App</title>
   <style>
     body {
       background: #111;
@@ -25,7 +25,7 @@
     #qr {
       margin: 20px;
     }
-    input {
+    input, select {
       padding: 10px;
       margin: 10px;
       width: 250px;
@@ -38,86 +38,118 @@
 </head>
 <body>
 
-  <h1>📈 Signal App - Join Us</h1>
+  <h1>📈 Signal App</h1>
 
-  <button id="googleSignIn">Sign in with Google</button>
-  <p id="userEmail"></p>
-
-  <div id="paymentSection" style="display:none;">
-    <h2>💳 Pay & Submit UTR</h2>
-    <img id="qr" src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=yourupi@bank&pn=SignalApp&am=499&cu=INR" alt="QR Code for UPI" width="200">
-    <p>Scan to pay and enter UTR below:</p>
-    <input type="text" id="utr" placeholder="Enter UTR Number" />
-    <select id="plan">
-      <option value="weekly">Weekly</option>
-      <option value="monthly">Monthly</option>
-      <option value="3months">3 Months</option>
-    </select><br/>
-    <button onclick="submitUTR()">Submit UTR</button>
-    <p id="statusMsg"></p>
+  <div id="authSection">
+    <button id="googleSignIn">Sign in with Google</button>
   </div>
 
-  <!-- Firebase -->
+  <div id="userSection" style="display:none;">
+    <p id="userEmail"></p>
+    <button id="logoutBtn">Logout</button>
+
+    <div id="paymentSection">
+      <h2>💳 Pay & Submit UTR</h2>
+      <img id="qr" src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=yourupi@bank&pn=SignalApp&am=499&cu=INR" alt="QR Code for UPI" width="200">
+      <p>Scan to pay and enter UTR below:</p>
+      <input type="text" id="utr" placeholder="Enter UTR Number" />
+      <select id="plan">
+        <option value="weekly">Weekly</option>
+        <option value="monthly">Monthly</option>
+        <option value="3months">3 Months</option>
+      </select><br/>
+      <button onclick="submitUTR()">Submit UTR</button>
+      <p id="statusMsg"></p>
+    </div>
+
+    <div id="signalsSection" style="display:none;">
+      <h2>📢 Trade Signals</h2>
+      <ul id="signalsList"></ul>
+    </div>
+  </div>
+
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
   <script>
-    // 🔐 Replace with your Firebase config
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT_ID.appspot.com",
-      messagingSenderId: "SENDER_ID",
-      appId: "APP_ID"
-    };
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyCZGMG8iYHmmkY_MkuPggLDShD0aFqByQ0",
+  authDomain: "signalapp-c5d0e.firebaseapp.com",
+  projectId: "signalapp-c5d0e",
+  storageBucket: "signalapp-c5d0e.firebasestorage.app",
+  messagingSenderId: "515390269998",
+  appId: "1:515390269998:web:4231b1a25e611cfd978dbf",
+  measurementId: "G-FF980DKDS2"
+};
 
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    let userEmail = "";
+    const authSection = document.getElementById('authSection');
+    const userSection = document.getElementById('userSection');
+    const userEmailDisplay = document.getElementById('userEmail');
+    const signalsSection = document.getElementById('signalsSection');
+    const signalsList = document.getElementById('signalsList');
+    const statusMsg = document.getElementById('statusMsg');
 
-    document.getElementById('googleSignIn').addEventListener('click', () => {
+    document.getElementById('googleSignIn').onclick = () => {
       const provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider)
-        .then((result) => {
-          const user = result.user;
-          userEmail = user.email;
-          document.getElementById("userEmail").textContent = "Welcome, " + user.email;
-          document.getElementById("paymentSection").style.display = "block";
-        })
-        .catch((error) => {
-          alert("Error signing in: " + error.message);
-        });
+      auth.signInWithPopup(provider);
+    };
+
+    document.getElementById('logoutBtn').onclick = () => {
+      auth.signOut();
+    };
+
+    auth.onAuthStateChanged(async user => {
+      if (user) {
+        authSection.style.display = 'none';
+        userSection.style.display = 'block';
+        userEmailDisplay.textContent = 'Welcome, ' + user.email;
+
+        const doc = await db.collection("subscriptions").doc(user.email).get();
+        if (doc.exists && doc.data().confirmed) {
+          showSignals();
+        } else {
+          statusMsg.textContent = "Submit UTR to access signals.";
+        }
+      } else {
+        authSection.style.display = 'block';
+        userSection.style.display = 'none';
+        signalsSection.style.display = 'none';
+      }
     });
 
-    function submitUTR() {
+    async function submitUTR() {
       const utr = document.getElementById("utr").value.trim();
       const plan = document.getElementById("plan").value;
+      const email = auth.currentUser.email;
 
-      if (!utr) {
-        alert("Please enter a valid UTR number.");
-        return;
-      }
+      if (!utr) return alert("Enter UTR number");
 
-      db.collection("subscriptions").doc(userEmail).set({
-        email: userEmail,
+      await db.collection("subscriptions").doc(email).set({
+        email: email,
         utr: utr,
         plan: plan,
         confirmed: false,
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      })
-      .then(() => {
-        document.getElementById("statusMsg").textContent = "✅ UTR Submitted. Waiting for admin confirmation.";
-      })
-      .catch((err) => {
-        console.error(err);
-        alert("Error submitting UTR.");
       });
+
+      statusMsg.textContent = "UTR submitted. Waiting for admin confirmation.";
+    }
+
+    async function showSignals() {
+      const querySnapshot = await db.collection("signals").orderBy("timestamp", "desc").get();
+      signalsList.innerHTML = "";
+      querySnapshot.forEach(doc => {
+        const li = document.createElement("li");
+        li.textContent = doc.data().message;
+        signalsList.appendChild(li);
+      });
+      signalsSection.style.display = 'block';
     }
   </script>
-
 </body>
 </html>
