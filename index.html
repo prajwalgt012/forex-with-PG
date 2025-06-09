@@ -10,45 +10,63 @@
       box-sizing: border-box;
     }
 
-    body {
+    html, body {
       margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: 'Montserrat', sans-serif;
       background: linear-gradient(145deg, #0f2027, #203a43, #2c5364);
       color: #fff;
-      font-family: 'Montserrat', sans-serif;
-      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    body {
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 20px;
+      background: url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1470&q=80') no-repeat center center fixed;
+      background-size: cover;
+    }
+
+    #overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(20, 45, 76, 0.85);
+      z-index: 999;
     }
 
     #appContainer {
-      background: #142d4c;
-      border-radius: 16px;
-      padding: 30px;
-      width: 400px;
-      box-shadow: 0 10px 40px rgba(255, 215, 0, 0.4);
       position: relative;
+      z-index: 1000;
+      background: #142d4ccc;
+      border-radius: 16px;
+      padding: 40px 40px 50px 40px;
+      width: 420px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 0 40px rgba(255, 215, 0, 0.6);
     }
 
     h1 {
       color: #ffd700;
       text-align: center;
-      margin-bottom: 30px;
+      margin-bottom: 35px;
+      user-select: none;
     }
 
     button {
       background: linear-gradient(to right, #ffd700, #ffb700);
       color: #111;
       border: none;
-      padding: 12px 25px;
-      border-radius: 12px;
+      padding: 14px 25px;
+      border-radius: 14px;
       font-weight: 700;
-      font-size: 16px;
+      font-size: 17px;
       cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       transition: transform 0.2s ease;
       width: 100%;
+      user-select: none;
     }
 
     button:hover {
@@ -56,23 +74,24 @@
     }
 
     input, select {
-      padding: 12px;
-      margin: 10px 0;
+      padding: 14px;
+      margin: 12px 0;
       width: 100%;
-      border-radius: 8px;
+      border-radius: 10px;
       border: none;
       background: #1e3c72;
       color: white;
-      font-size: 14px;
+      font-size: 15px;
+      user-select: text;
     }
 
     /* Three-dot menu */
     #menuBtn {
       position: absolute;
-      top: 20px;
-      right: 20px;
-      width: 30px;
-      height: 30px;
+      top: 25px;
+      right: 25px;
+      width: 34px;
+      height: 34px;
       background: transparent;
       border: none;
       cursor: pointer;
@@ -83,27 +102,29 @@
 
     #menuDropdown {
       position: absolute;
-      top: 55px;
-      right: 20px;
+      top: 65px;
+      right: 25px;
       background: #203a43;
-      border-radius: 10px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.5);
-      width: 180px;
+      border-radius: 14px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.7);
+      width: 200px;
       display: none;
       flex-direction: column;
-      padding: 10px 0;
-      z-index: 10;
+      padding: 12px 0;
+      z-index: 1001;
+      user-select: none;
     }
 
     #menuDropdown button {
       background: none;
       color: #ffd700;
-      padding: 12px 20px;
+      padding: 14px 22px;
       font-weight: 600;
       text-align: left;
       width: 100%;
       border-radius: 0;
       box-shadow: none;
+      font-size: 14px;
     }
     #menuDropdown button:hover {
       background: #2c5364;
@@ -114,72 +135,106 @@
     #plansContainer {
       display: flex;
       flex-direction: column;
-      gap: 15px;
-      margin-bottom: 20px;
+      gap: 18px;
+      margin-bottom: 28px;
+      user-select: none;
     }
 
     .planBox {
       background: #203a43;
-      border: 2px solid #ffd700;
-      border-radius: 14px;
-      padding: 20px;
+      border: 3px solid #ffd700;
+      border-radius: 16px;
+      padding: 22px;
       font-weight: 700;
-      font-size: 18px;
+      font-size: 20px;
       text-align: center;
       cursor: pointer;
       transition: background 0.3s ease, transform 0.2s ease;
-      user-select: none;
     }
     .planBox:hover {
       background: #ffd700;
       color: #111;
-      transform: scale(1.05);
+      transform: scale(1.06);
     }
     .planBox.selected {
       background: #ffb700;
       color: #111;
       border-color: #ff9000;
-      transform: scale(1.05);
+      transform: scale(1.06);
     }
 
     #paymentSection {
       background: #1e3c72;
-      border-radius: 14px;
-      padding: 20px;
-      box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 26px 24px 24px 24px;
+      box-shadow: inset 0 0 14px rgba(255, 255, 255, 0.15);
+      user-select: none;
     }
 
     #qr {
       display: block;
-      margin: 0 auto 15px auto;
+      margin: 0 auto 20px auto;
       border: 4px solid #ffd700;
-      padding: 10px;
-      border-radius: 12px;
+      padding: 14px;
+      border-radius: 16px;
       background: white;
       max-width: 220px;
       max-height: 220px;
+      user-select: none;
     }
 
     #statusMsg {
-      margin-top: 15px;
+      margin-top: 18px;
       font-style: italic;
       color: #00ffcc;
-      min-height: 50px;
+      min-height: 60px;
       text-align: center;
+      user-select: none;
     }
     #statusMsg small {
       display: block;
-      margin-top: 6px;
-      font-size: 12px;
+      margin-top: 8px;
+      font-size: 13px;
       color: #a0e9d8;
       font-style: normal;
     }
+
+    #signalsSection {
+      margin-top: 32px;
+      user-select: none;
+    }
+    #signalsSection h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #ffd700;
+    }
+
+    #signalsList {
+      list-style: none;
+      padding-left: 0;
+      max-height: 200px;
+      overflow-y: auto;
+      border: 2px solid #ffd700;
+      border-radius: 14px;
+      background: #203a43;
+    }
+    #signalsList li {
+      padding: 10px 15px;
+      border-bottom: 1px solid #2c5364;
+      font-size: 15px;
+    }
+    #signalsList li:last-child {
+      border-bottom: none;
+    }
+
   </style>
 </head>
 <body>
 
+  <div id="overlay"></div>
+
   <div id="appContainer">
-    <h1>📈 Forex with PG </h1>
+    <h1>📈 Signal App</h1>
 
     <!-- Three-dot menu button -->
     <button id="menuBtn" title="Profile & Logout" style="display:none;">&#x22EE;</button>
@@ -207,16 +262,18 @@
       <div id="paymentSection" style="display:none;">
         <h2>💳 Pay & Submit UTR</h2>
         <img id="qr" src="" alt="QR Code for UPI" />
-        <p>Scan to pay and enter UTR below:</p>
+        <p style="text-align:center;">Scan to pay and enter UTR below:</p>
         <input type="text" id="utr" placeholder="Enter UTR Number" />
         <button id="submitUTRBtn">Submit UTR</button>
-        <p id="statusMsg"></p>
       </div>
 
+      <!-- Thank you message below payment -->
+      <div id="statusMsg"></div>
+
       <!-- Trade Signals Section -->
-      <div id="signalsSection" style="display:none; margin-top: 30px;">
+      <div id="signalsSection" style="display:none;">
         <h2>📢 Trade Signals</h2>
-        <ul id="signalsList" style="list-style:none; padding-left:0;"></ul>
+        <ul id="signalsList"></ul>
       </div>
 
     </div>
@@ -307,7 +364,7 @@
         selectedPlan = e.target.getAttribute('data-plan');
 
         // Show payment section with correct QR
-        qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(upiPayments[selectedPlan])}&size=200x200`;
+        qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(upiPayments[selectedPlan])}&size=220x220`;
         paymentSection.style.display = 'block';
 
         // Clear previous inputs/messages
@@ -339,10 +396,8 @@
           timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        // Show thank you message
+        // Show thank you message and hide payment inputs
         statusMsg.innerHTML = "Thank you for your payment.<br/><small>Please wait, admin will confirm your payment.</small>";
-
-        // Hide payment inputs after submit
         paymentSection.style.display = 'none';
       } catch (error) {
         statusMsg.textContent = "Error submitting UTR. Please try again.";
@@ -384,7 +439,7 @@
         // Check subscription confirmation
         const subDoc = await db.collection("subscriptions").doc(user.email).get();
         if (subDoc.exists && subDoc.data().confirmed) {
-          // Show signals and hide plans + payment
+          // Show signals and hide plans + payment + thank you msg
           plansContainer.style.display = 'none';
           paymentSection.style.display = 'none';
           statusMsg.textContent = '';
@@ -399,7 +454,6 @@
           // Remove plan selection highlight
           Array.from(plansContainer.children).forEach(el => el.classList.remove('selected'));
         }
-
       } else {
         currentUser = null;
         authSection.style.display = 'block';
