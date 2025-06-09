@@ -3,13 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Signal Provider - Luxury Edition</title>
+<title>Signal Provider - Login & Subscription</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat&display=swap');
-
-  * {
-    box-sizing: border-box;
-  }
 
   body {
     margin: 0;
@@ -20,13 +16,13 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 20px;
   }
 
   .container {
-    background: rgba(30, 25, 45, 0.85);
+    background: rgba(30, 25, 45, 0.95);
     border-radius: 20px;
-    max-width: 480px;
+    max-width: 400px;
+    width: 90%;
     padding: 40px 30px;
     box-shadow: 0 15px 35px rgba(0,0,0,0.5);
     text-align: center;
@@ -34,71 +30,17 @@
 
   h1 {
     font-family: 'Playfair Display', serif;
-    font-size: 3rem;
-    margin-bottom: 0.2em;
+    font-size: 2.8rem;
+    margin-bottom: 0.4em;
     color: #f8d775;
     text-shadow: 0 2px 8px rgba(248, 215, 117, 0.7);
   }
 
-  h2 {
-    color: #e0c97a;
-    margin-bottom: 1em;
-    letter-spacing: 1px;
-  }
-
-  p.subtitle {
-    font-size: 1.2rem;
-    margin-bottom: 2em;
-    font-weight: 600;
-    color: #ccc;
-  }
-
-  .plans {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    margin-bottom: 2em;
-  }
-
-  .plan {
-    background: #2a223d;
-    border-radius: 15px;
-    padding: 20px;
-    font-weight: 700;
-    font-size: 1.3rem;
-    color: #f8d775;
-    box-shadow: 0 4px 10px rgba(248, 215, 117, 0.3);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    cursor: pointer;
-  }
-  .plan:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(248, 215, 117, 0.7);
-  }
-
-  .qr-section {
-    margin-bottom: 2em;
-  }
-
-  .qr-section img {
-    width: 180px;
-    height: 180px;
-    border-radius: 15px;
-    box-shadow: 0 10px 20px rgba(248, 215, 117, 0.5);
-    transition: transform 0.3s ease;
-  }
-  .qr-section img:hover {
-    transform: scale(1.05);
-  }
-
-  .input-group {
-    margin-bottom: 2em;
-  }
-
-  input[type="text"] {
+  input[type="text"], input[type="password"] {
     width: 100%;
     padding: 15px;
     font-size: 1.1rem;
+    margin: 12px 0 20px 0;
     border-radius: 12px;
     border: none;
     outline: none;
@@ -108,7 +50,7 @@
     font-weight: 600;
     transition: box-shadow 0.3s ease;
   }
-  input[type="text"]:focus {
+  input[type="text"]:focus, input[type="password"]:focus {
     box-shadow: 0 0 15px #f8d775;
   }
 
@@ -130,64 +72,93 @@
     transform: translateY(-3px);
   }
 
-  .apk-download {
-    display: block;
-    margin: 20px auto 0 auto;
-    max-width: 240px;
-    background: #f8d775;
-    color: #2a223d;
+  .error {
+    color: #ff6b6b;
+    margin-bottom: 15px;
     font-weight: 700;
-    font-size: 1.1rem;
-    border-radius: 12px;
-    padding: 12px 0;
-    text-decoration: none;
-    box-shadow: 0 6px 15px rgba(212, 175, 55, 0.7);
+  }
+
+  /* Hide pages by default */
+  .page {
+    display: none;
+  }
+  .page.active {
+    display: block;
+  }
+
+  .plan {
+    background: #3b3456;
+    border-radius: 15px;
+    padding: 20px;
+    margin: 15px 0;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 1.2rem;
+    box-shadow: 0 0 15px #f8d775;
     transition: background 0.3s ease;
   }
-  .apk-download:hover {
-    background: #d4af37;
+  .plan:hover, .plan:focus {
+    background: #f8d775;
+    color: #2a223d;
+    outline: none;
+  }
+
+  .qr-section img {
+    width: 180px;
+    height: 180px;
+    margin: 10px 0 20px 0;
+    border-radius: 15px;
+    box-shadow: 0 0 20px #f8d775;
+  }
+
+  .input-group {
+    margin-top: 10px;
+  }
+
+  .input-group input {
+    margin-bottom: 10px;
   }
 
   .footer {
     margin-top: 30px;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     color: #aaa;
-  }
-
-  .whatsapp-btn {
-    margin-top: 15px;
-    display: inline-block;
-    background: #25D366;
-    color: white;
-    padding: 12px 25px;
-    border-radius: 50px;
-    font-weight: 700;
-    text-decoration: none;
-    box-shadow: 0 6px 12px #25D366cc;
-    transition: background 0.3s ease;
-  }
-  .whatsapp-btn:hover {
-    background: #1da851;
   }
 </style>
 </head>
 <body>
 
-  <div class="container">
-    <h1>Signal Provider</h1>
-    <h2>Exclusive Trading Signals</h2>
-    <p class="subtitle">Start your <strong>7-day free trial</strong>. Choose your subscription plan after!</p>
+  <!-- Login Page -->
+  <div id="loginPage" class="container page active" role="main" aria-label="Login Page">
+    <h1>Login</h1>
+    <div id="errorMsg" class="error" aria-live="assertive"></div>
+    <input type="text" id="username" placeholder="Username" aria-label="Username" />
+    <input type="password" id="password" placeholder="Password" aria-label="Password" />
+    <button onclick="handleLogin()">Login</button>
+  </div>
 
-    <div class="plans" aria-label="Subscription Plans">
-      <div class="plan" tabindex="0">Weekly Plan - ₹500</div>
-      <div class="plan" tabindex="0">Monthly Plan - ₹1500</div>
-      <div class="plan" tabindex="0">3 Months Plan - ₹4000</div>
-    </div>
+  <!-- Subscription Page -->
+  <div id="subscriptionPage" class="container page" role="main" aria-label="Subscription Plans">
+    <h1>Choose Your Plan</h1>
+    <p class="subtitle">Start your <strong>7-day free trial</strong> now!</p>
+
+    <div tabindex="0" class="plan" onclick="selectPlan('Weekly Plan', 500)" onkeypress="if(event.key==='Enter'){selectPlan('Weekly Plan', 500);}">Weekly Plan - ₹500</div>
+    <div tabindex="0" class="plan" onclick="selectPlan('Monthly Plan', 1500)" onkeypress="if(event.key==='Enter'){selectPlan('Monthly Plan', 1500);}">Monthly Plan - ₹1500</div>
+    <div tabindex="0" class="plan" onclick="selectPlan('3 Months Plan', 4000)" onkeypress="if(event.key==='Enter'){selectPlan('3 Months Plan', 4000);}">3 Months Plan - ₹4000</div>
+
+    <button onclick="logout()">Logout</button>
+  </div>
+
+  <!-- Payment Page -->
+  <div id="paymentPage" class="container page" role="main" aria-label="Payment Page">
+    <h1>Payment</h1>
+    <p>You selected: <strong id="selectedPlanName"></strong></p>
+    <p>Amount to pay: <strong>₹<span id="selectedPlanPrice"></span></strong></p>
 
     <div class="qr-section">
       <h2>Scan to Pay via UPI</h2>
       <img src="https://dummyimage.com/200x200/000/fff&text=QR+Code" alt="Payment QR Code" />
-      <p>After payment, send your UTR number for confirmation.</p>
+      <p>After payment, enter your UTR number for confirmation.</p>
     </div>
 
     <div class="input-group">
@@ -195,9 +166,7 @@
       <button onclick="confirmUTR()">Confirm Payment</button>
     </div>
 
-    <a href="#" class="apk-download" aria-label="Download Android APK">Download Android APK (Coming Soon)</a>
-
-    <a href="https://wa.me/919999999999" target="_blank" rel="noopener" class="whatsapp-btn" aria-label="Contact admin on WhatsApp">Chat with Admin on WhatsApp</a>
+    <button onclick="backToSubscription()" style="margin-top: 20px;">Back to Plans</button>
 
     <div class="footer">
       <p>© 2025 Signal Provider App. All rights reserved.</p>
@@ -205,13 +174,59 @@
   </div>
 
 <script>
+  // Dummy login credentials
+  function handleLogin() {
+    const user = document.getElementById('username').value.trim();
+    const pass = document.getElementById('password').value.trim();
+    const errorMsg = document.getElementById('errorMsg');
+
+    if (!user || !pass) {
+      errorMsg.textContent = "Please enter username and password";
+      return;
+    }
+
+    if (user === 'admin' && pass === 'admin123') {
+      errorMsg.textContent = '';
+      showPage('subscriptionPage');
+    } else {
+      errorMsg.textContent = "Invalid username or password";
+    }
+  }
+
+  function showPage(pageId) {
+    ['loginPage', 'subscriptionPage', 'paymentPage'].forEach(id => {
+      document.getElementById(id).classList.remove('active');
+    });
+    document.getElementById(pageId).classList.add('active');
+  }
+
+  function selectPlan(name, price) {
+    document.getElementById('selectedPlanName').textContent = name;
+    document.getElementById('selectedPlanPrice').textContent = price;
+    showPage('paymentPage');
+  }
+
   function confirmUTR() {
     const utr = document.getElementById('utr').value.trim();
     if (!utr) {
       alert('Please enter your UTR number!');
       return;
     }
-    alert('Thank you! Your UTR number: ' + utr + ' has been submitted for admin confirmation.');
+    alert(`Thank you! Your UTR number "${utr}" has been submitted for admin confirmation.`);
+    // Reset for next payment
+    document.getElementById('utr').value = '';
+    showPage('subscriptionPage');
+  }
+
+  function backToSubscription() {
+    showPage('subscriptionPage');
+  }
+
+  function logout() {
+    // Clear login fields
+    document.getElementById('username').value = '';
+    document.getElementById('password').value = '';
+    showPage('loginPage');
   }
 </script>
 
