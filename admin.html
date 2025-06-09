@@ -1,1 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Panel - Signal App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #f2f2f2;
+      padding: 20px;
+    }
+    h1 {
+      color: #ffd700;
+      text-align: center;
+    }
+    .section {
+      margin-bottom: 40px;
+    }
+    .card {
+      background: #222;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid #333;
+    }
+    button {
+      background: #ffd700;
+      color: #000;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 5px;
+      margin-top: 5px;
+      cursor: pointer;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      background: #333;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+    }
+    textarea {
+      height: 100px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Admin Panel</h1>
+
+  <div class="section">
+    <h2>🔓 Pending UTR Confirmations</h2>
+    <div id="pendingList">Loading...</div>
+  </div>
+
+  <div class="section">
+    <h2>📢 Post New Signal</h2>
+    <form id="signalForm">
+      <textarea id="signalMessage" placeholder="Enter signal message..." required></textarea>
+      <button type="submit">Post Signal</button>
+    </form>
+    <div id="signalStatus"></div>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    // Paste your Firebase config here
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const pendingList = document.getElementById('pendingList');
+
+    async function loadPendingSubscriptions() {
+      const querySnapshot = await db.collection("subscriptions")
+        .where("confirmed", "==", false)
+        .orderBy("timestamp", "desc")
+        .get();
+
+      if (querySnapshot.empty) {
+        pendingList.innerHTML = "<p>No pending UTR confirmations.</p>";
+        return;
+      }
+
+      pendingList.innerHTML = "";
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const div = document.createElement("div");
+        div.className = "card";
+        div.innerHTML = `
+          <strong>Email:</strong> ${data.email}<br/>
+          <strong>Plan:</strong> ${data.plan}<br/>
+          <strong>UTR:</strong> ${data.utr}<br/>
+          <button onclick="confirmUTR('${doc.id}')">✅ Confirm Payment</button>
+        `;
+        pendingList.appendChild(div);
+      });
+    }
+
+    async function confirmUTR(email) {
+      await db.collection("subscriptions").doc(email).update({ confirmed: true });
+      alert(`Confirmed UTR for ${email}`);
+      loadPendingSubscriptions(); // refresh list
+    }
+
+    document.getElementById("signalForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const message = document.getElementById("signalMessage").value.trim();
+      if (message === "") return;
+
+      await db.collection("signals").add({
+        message,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      document.getElementById("signalStatus").innerText = "✅ Signal Posted!";
+      document.getElementById("signalMessage").value = "";
+    });
+
+    // Load on start
+    loadPendingSubscriptions();
+  </script>
+</body>
+</html>
 
