@@ -1,324 +1,160 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Forex with PG</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
 
-    * {
-      box-sizing: border-box;
-    }
-
-    html, body {
+    body {
       margin: 0;
       padding: 0;
-      height: 100%;
       font-family: 'Montserrat', sans-serif;
-      background: linear-gradient(145deg, #0f2027, #203a43, #2c5364);
-      color: #fff;
-      overflow: hidden;
-    }
-
-    body {
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      color: white;
+      height: 100vh;
       display: flex;
-      justify-content: center;
       align-items: center;
-      background: url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1470&q=80') no-repeat center center fixed;
-      background-size: cover;
+      justify-content: center;
     }
 
-    #overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(20, 45, 76, 0.85);
-      z-index: 999;
-    }
-
-    #appContainer {
-      position: relative;
-      z-index: 1000;
-      background: #142d4ccc;
+    .box {
+      background-color: #1c1c1c;
       border-radius: 16px;
-      padding: 40px 40px 50px 40px;
-      width: 420px;
-      max-height: 90vh;
-      overflow-y: auto;
-      box-shadow: 0 0 40px rgba(255, 215, 0, 0.6);
+      padding: 30px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
     }
 
-    h1 {
+    h1, h2 {
       color: #ffd700;
       text-align: center;
-      margin-bottom: 35px;
-      user-select: none;
     }
 
     button {
-      background: linear-gradient(to right, #ffd700, #ffb700);
-      color: #111;
-      border: none;
-      padding: 14px 25px;
-      border-radius: 14px;
-      font-weight: 700;
-      font-size: 17px;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      transition: transform 0.2s ease;
       width: 100%;
-      user-select: none;
-    }
-
-    button:hover {
-      transform: scale(1.05);
+      padding: 12px;
+      margin-top: 10px;
+      background: linear-gradient(to right, #ffd700, #ffb700);
+      border: none;
+      color: #111;
+      font-weight: bold;
+      border-radius: 10px;
+      cursor: pointer;
     }
 
     input, select {
-      padding: 14px;
-      margin: 12px 0;
       width: 100%;
-      border-radius: 10px;
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 8px;
       border: none;
-      background: #1e3c72;
+      background-color: #333;
       color: white;
-      font-size: 15px;
-      user-select: text;
-    }
-
-    /* Three-dot menu */
-    #menuBtn {
-      position: absolute;
-      top: 25px;
-      right: 25px;
-      width: 34px;
-      height: 34px;
-      background: transparent;
-      border: none;
-      cursor: pointer;
-      font-size: 30px;
-      color: #ffd700;
-      user-select: none;
-    }
-
-    #menuDropdown {
-      position: absolute;
-      top: 65px;
-      right: 25px;
-      background: #203a43;
-      border-radius: 14px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.7);
-      width: 200px;
-      display: none;
-      flex-direction: column;
-      padding: 12px 0;
-      z-index: 1001;
-      user-select: none;
-    }
-
-    #menuDropdown button {
-      background: none;
-      color: #ffd700;
-      padding: 14px 22px;
-      font-weight: 600;
-      text-align: left;
-      width: 100%;
-      border-radius: 0;
-      box-shadow: none;
-      font-size: 14px;
-    }
-    #menuDropdown button:hover {
-      background: #2c5364;
-      color: #fff;
-    }
-
-    /* Plan Boxes */
-    #plansContainer {
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-      margin-bottom: 28px;
-      user-select: none;
-    }
-
-    .planBox {
-      background: #203a43;
-      border: 3px solid #ffd700;
-      border-radius: 16px;
-      padding: 22px;
-      font-weight: 700;
-      font-size: 20px;
-      text-align: center;
-      cursor: pointer;
-      transition: background 0.3s ease, transform 0.2s ease;
-    }
-    .planBox:hover {
-      background: #ffd700;
-      color: #111;
-      transform: scale(1.06);
-    }
-    .planBox.selected {
-      background: #ffb700;
-      color: #111;
-      border-color: #ff9000;
-      transform: scale(1.06);
-    }
-
-    #paymentSection {
-      background: #1e3c72;
-      border-radius: 16px;
-      padding: 26px 24px 24px 24px;
-      box-shadow: inset 0 0 14px rgba(255, 255, 255, 0.15);
-      user-select: none;
     }
 
     #qr {
       display: block;
-      margin: 0 auto 20px auto;
-      border: 4px solid #ffd700;
-      padding: 14px;
-      border-radius: 16px;
+      margin: 20px auto;
       background: white;
-      max-width: 220px;
-      max-height: 220px;
-      user-select: none;
+      border-radius: 10px;
+      padding: 10px;
+      border: 2px solid #ffd700;
     }
 
     #statusMsg {
-      margin-top: 18px;
-      font-style: italic;
       color: #00ffcc;
-      min-height: 60px;
       text-align: center;
-      user-select: none;
-    }
-    #statusMsg small {
-      display: block;
-      margin-top: 8px;
-      font-size: 13px;
-      color: #a0e9d8;
-      font-style: normal;
+      margin-top: 10px;
     }
 
-    #signalsSection {
-      margin-top: 32px;
-      user-select: none;
-    }
-    #signalsSection h2 {
-      text-align: center;
-      margin-bottom: 20px;
-      color: #ffd700;
+    #menuBtn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: none;
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
     }
 
-    #signalsList {
+    #profileMenu {
+      position: absolute;
+      top: 60px;
+      right: 20px;
+      background: #222;
+      border: 1px solid #555;
+      border-radius: 10px;
+      padding: 10px;
+      display: none;
+    }
+
+    #profileMenu p {
+      margin: 8px 0;
+      font-size: 14px;
+    }
+
+    ul {
       list-style: none;
       padding-left: 0;
-      max-height: 200px;
-      overflow-y: auto;
-      border: 2px solid #ffd700;
-      border-radius: 14px;
-      background: #203a43;
     }
-    #signalsList li {
-      padding: 10px 15px;
-      border-bottom: 1px solid #2c5364;
-      font-size: 15px;
-    }
-    #signalsList li:last-child {
-      border-bottom: none;
-    }
-
-    /* Full page thank you message */
-    #thankYouPage {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(20, 45, 76, 0.95);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      color: #00ffcc;
-      font-size: 28px;
-      font-weight: 700;
-      text-align: center;
-      padding: 20px;
-      user-select: none;
-      display: none;
-      z-index: 1100;
-    }
-    #thankYouPage small {
-      margin-top: 12px;
-      font-size: 18px;
-      font-weight: 400;
-      color: #a0e9d8;
-    }
-
   </style>
 </head>
 <body>
+  <button id="menuBtn">⋮</button>
+  <div id="profileMenu">
+    <p id="userEmail"></p>
+    <p id="planInfo"></p>
+    <button onclick="logout()">Logout</button>
+  </div>
 
-  <div id="overlay"></div>
-
-  <div id="appContainer">
+  <div class="box" id="authSection">
     <h1>📈 Forex with PG</h1>
-
-    <!-- Three-dot menu button -->
-    <button id="menuBtn" title="Profile & Logout" style="display:none;">&#x22EE;</button>
-    <div id="menuDropdown">
-      <button id="profileEmail"></button>
-      <button id="logoutBtn">Logout</button>
-    </div>
-
-    <!-- Auth Section -->
-    <div id="authSection">
-      <button id="googleSignIn">Sign in with Google</button>
-    </div>
-
-    <!-- Logged In Content -->
-    <div id="loggedInSection" style="display:none;">
-
-      <!-- Subscription Plans -->
-      <div id="plansContainer">
-        <div class="planBox" data-plan="weekly">Weekly Plan - ₹499</div>
-        <div class="planBox" data-plan="monthly">Monthly Plan - ₹1299</div>
-        <div class="planBox" data-plan="3months">3 Months Plan - ₹3499</div>
-      </div>
-
-      <!-- Payment Section (hidden initially) -->
-      <div id="paymentSection" style="display:none;">
-        <h2>💳 Pay & Submit UTR</h2>
-        <img id="qr" src="" alt="QR Code for UPI" />
-        <p style="text-align:center;">Scan to pay and enter UTR below:</p>
-        <input type="text" id="utr" placeholder="Enter UTR Number" />
-        <button id="submitUTRBtn">Submit UTR</button>
-      </div>
-
-      <!-- Trade Signals Section -->
-      <div id="signalsSection" style="display:none;">
-        <h2>📢 Trade Signals</h2>
-        <ul id="signalsList"></ul>
-      </div>
-
-    </div>
+    <button id="googleSignIn">Sign in with Google</button>
   </div>
 
-  <!-- Full page Thank you -->
-  <div id="thankYouPage">
-    Thank you for your payment.
-    <small>Please wait, admin will confirm your payment.</small>
+  <div class="box" id="plansSection" style="display:none;">
+    <h2>Choose a Plan</h2>
+    <select id="plan">
+      <option value="weekly">Weekly - ₹499</option>
+      <option value="monthly">Monthly - ₹1499</option>
+      <option value="3months">3 Months - ₹3999</option>
+    </select>
+    <button onclick="showPayment()">Purchase</button>
   </div>
 
-  <!-- Firebase SDKs -->
+  <div class="box" id="paymentSection" style="display:none;">
+    <h2>💳 UPI Payment</h2>
+    <img id="qr" src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=yourupi@bank&pn=PGSignalApp&am=499&cu=INR" width="200" alt="QR Code">
+    <p>Enter UTR number after payment:</p>
+    <input type="text" id="utr" placeholder="Enter UTR Number">
+    <button onclick="submitUTR()">Submit UTR</button>
+    <p id="statusMsg"></p>
+  </div>
+
+  <div class="box" id="thankYouSection" style="display:none;">
+    <h2>🎉 Thank You!</h2>
+    <p>Your payment has been submitted.</p>
+    <small>Please wait while admin confirms your payment.</small>
+  </div>
+
+  <div class="box" id="signalsSection" style="display:none;">
+    <h2>📢 Trade Signals</h2>
+    <ul id="signalsList"></ul>
+  </div>
+
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
   <script>
-    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyCZGMG8iYHmmkY_MkuPggLDShD0aFqByQ0",
       authDomain: "signalapp-c5d0e.firebaseapp.com",
       projectId: "signalapp-c5d0e",
-      storageBucket: "signalapp-c5d0e.firebasestorage.app",
+      storageBucket: "signalapp-c5d0e.appspot.com",
       messagingSenderId: "515390269998",
       appId: "1:515390269998:web:4231b1a25e611cfd978dbf",
       measurementId: "G-FF980DKDS2"
@@ -328,174 +164,93 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // DOM elements
-    const authSection = document.getElementById('authSection');
-    const loggedInSection = document.getElementById('loggedInSection');
-    const menuBtn = document.getElementById('menuBtn');
-    const menuDropdown = document.getElementById('menuDropdown');
-    const profileEmail = document.getElementById('profileEmail');
-    const logoutBtn = document.getElementById('logoutBtn');
+    const authSection = document.getElementById("authSection");
+    const plansSection = document.getElementById("plansSection");
+    const paymentSection = document.getElementById("paymentSection");
+    const thankYouSection = document.getElementById("thankYouSection");
+    const signalsSection = document.getElementById("signalsSection");
+    const signalsList = document.getElementById("signalsList");
+    const statusMsg = document.getElementById("statusMsg");
+    const userEmailEl = document.getElementById("userEmail");
+    const planInfoEl = document.getElementById("planInfo");
 
-    const plansContainer = document.getElementById('plansContainer');
-    const paymentSection = document.getElementById('paymentSection');
-    const qrImage = document.getElementById('qr');
-    const utrInput = document.getElementById('utr');
-    const submitUTRBtn = document.getElementById('submitUTRBtn');
-
-    const signalsSection = document.getElementById('signalsSection');
-    const signalsList = document.getElementById('signalsList');
-
-    const thankYouPage = document.getElementById('thankYouPage');
-
-    let selectedPlan = null;
-    let currentUser = null;
-
-    // UPI payment URLs for plans
-    const upiPayments = {
-      weekly: "upi://pay?pa=yourupi@bank&pn=SignalApp&am=499&cu=INR",
-      monthly: "upi://pay?pa=yourupi@bank&pn=SignalApp&am=1299&cu=INR",
-      '3months': "upi://pay?pa=yourupi@bank&pn=SignalApp&am=3499&cu=INR"
-    };
-
-    // Toggle dropdown menu
-    menuBtn.addEventListener('click', () => {
-      if(menuDropdown.style.display === 'flex') {
-        menuDropdown.style.display = 'none';
-      } else {
-        menuDropdown.style.display = 'flex';
-      }
-    });
-
-    // Hide dropdown if clicking outside
-    document.addEventListener('click', e => {
-      if (!menuBtn.contains(e.target) && !menuDropdown.contains(e.target)) {
-        menuDropdown.style.display = 'none';
-      }
-    });
-
-    // Sign in with Google
-    document.getElementById('googleSignIn').onclick = () => {
+    document.getElementById("googleSignIn").onclick = () => {
       const provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider).catch(console.error);
+      auth.signInWithPopup(provider);
     };
 
-    // Logout
-    logoutBtn.onclick = () => {
+    function logout() {
       auth.signOut();
-      // Hide thank you page if visible
-      thankYouPage.style.display = 'none';
-    };
-
-    // Plan selection handler
-    plansContainer.addEventListener('click', e => {
-      if (e.target.classList.contains('planBox')) {
-        // Mark selected visually
-        Array.from(plansContainer.children).forEach(el => el.classList.remove('selected'));
-        e.target.classList.add('selected');
-        selectedPlan = e.target.getAttribute('data-plan');
-
-        // Show payment section with correct QR
-        qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(upiPayments[selectedPlan])}&size=220x220`;
-        paymentSection.style.display = 'block';
-
-        // Clear previous inputs/messages
-        utrInput.value = '';
-      }
-    });
-
-    // Submit UTR payment confirmation
-    submitUTRBtn.onclick = async () => {
-      const utr = utrInput.value.trim();
-      if (!utr) {
-        alert("Please enter your UTR number.");
-        return;
-      }
-      if (!selectedPlan) {
-        alert("Please select a subscription plan first.");
-        return;
-      }
-
-      const email = currentUser.email;
-
-      try {
-        await db.collection("subscriptions").doc(email).set({
-          email: email,
-          utr: utr,
-          plan: selectedPlan,
-          confirmed: false,
-          timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-        // Hide everything except thank you page
-        authSection.style.display = 'none';
-        loggedInSection.style.display = 'none';
-        menuBtn.style.display = 'none';
-        menuDropdown.style.display = 'none';
-
-        thankYouPage.style.display = 'flex';
-      } catch (error) {
-        alert("Error submitting UTR. Please try again.");
-        console.error(error);
-      }
-    };
-
-    // Show trade signals for confirmed subscription
-    async function showSignals() {
-      signalsList.innerHTML = '';
-      try {
-        const querySnapshot = await db.collection("signals").orderBy("timestamp", "desc").get();
-        if (querySnapshot.empty) {
-          signalsList.innerHTML = '<li>No signals posted yet.</li>';
-        } else {
-          querySnapshot.forEach(doc => {
-            const li = document.createElement('li');
-            li.textContent = doc.data().message;
-            signalsList.appendChild(li);
-          });
-        }
-        signalsSection.style.display = 'block';
-      } catch (error) {
-        signalsList.innerHTML = '<li>Error loading signals.</li>';
-        console.error(error);
-      }
     }
 
-    // Listen to auth state changes
+    document.getElementById("menuBtn").onclick = () => {
+      const menu = document.getElementById("profileMenu");
+      menu.style.display = menu.style.display === "none" ? "block" : "none";
+    };
+
     auth.onAuthStateChanged(async user => {
       if (user) {
-        currentUser = user;
-        authSection.style.display = 'none';
-        loggedInSection.style.display = 'block';
-        menuBtn.style.display = 'block';
-        thankYouPage.style.display = 'none';
+        userEmailEl.textContent = "👤 " + user.email;
+        authSection.style.display = "none";
 
-        profileEmail.textContent = user.email;
+        const doc = await db.collection("subscriptions").doc(user.email).get();
+        if (doc.exists) {
+          const data = doc.data();
+          planInfoEl.textContent = "📅 Plan: " + data.plan;
 
-        // Check subscription confirmation
-        const subDoc = await db.collection("subscriptions").doc(user.email).get();
-        if (subDoc.exists && subDoc.data().confirmed) {
-          // Show signals and hide plans + payment
-          plansContainer.style.display = 'none';
-          paymentSection.style.display = 'none';
-          signalsSection.style.display = 'block';
+          if (data.confirmed) {
+            showSignals();
+          } else {
+            thankYouSection.style.display = "block";
+          }
         } else {
-          // Show plans, hide signals and payment
-          signalsSection.style.display = 'none';
-          plansContainer.style.display = 'flex';
-          paymentSection.style.display = 'none';
-          selectedPlan = null;
-          // Remove plan selection highlight
-          Array.from(plansContainer.children).forEach(el => el.classList.remove('selected'));
+          plansSection.style.display = "block";
         }
       } else {
-        currentUser = null;
-        authSection.style.display = 'block';
-        loggedInSection.style.display = 'none';
-        menuBtn.style.display = 'none';
-        menuDropdown.style.display = 'none';
-        thankYouPage.style.display = 'none';
+        authSection.style.display = "block";
+        plansSection.style.display = "none";
+        paymentSection.style.display = "none";
+        thankYouSection.style.display = "none";
+        signalsSection.style.display = "none";
       }
     });
+
+    function showPayment() {
+      plansSection.style.display = "none";
+      paymentSection.style.display = "block";
+    }
+
+    async function submitUTR() {
+      const utr = document.getElementById("utr").value.trim();
+      const plan = document.getElementById("plan").value;
+      const email = auth.currentUser.email;
+
+      if (!utr) return alert("Please enter UTR number.");
+
+      await db.collection("subscriptions").doc(email).set({
+        email,
+        utr,
+        plan,
+        confirmed: false,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      paymentSection.style.display = "none";
+      thankYouSection.style.display = "block";
+    }
+
+    async function showSignals() {
+      thankYouSection.style.display = "none";
+      signalsSection.style.display = "block";
+
+      const querySnapshot = await db.collection("signals").orderBy("timestamp", "desc").get();
+      signalsList.innerHTML = "";
+      querySnapshot.forEach(doc => {
+        const li = document.createElement("li");
+        li.textContent = doc.data().message;
+        signalsList.appendChild(li);
+      });
+    }
   </script>
 </body>
 </html>
