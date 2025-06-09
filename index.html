@@ -3,231 +3,146 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Signal Provider - Login & Subscription</title>
+<title>Subscribe & Submit UTR</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat&display=swap');
-
   body {
-    margin: 0;
+    font-family: Arial, sans-serif;
     background: linear-gradient(135deg, #1f1c2c, #928dab);
-    font-family: 'Montserrat', sans-serif;
     color: #eee;
-    min-height: 100vh;
+    margin: 0; padding: 0;
     display: flex;
     justify-content: center;
+    min-height: 100vh;
     align-items: center;
   }
-
   .container {
-    background: rgba(30, 25, 45, 0.95);
-    border-radius: 20px;
+    background: #2a223d;
+    padding: 30px;
+    border-radius: 15px;
     max-width: 400px;
     width: 90%;
-    padding: 40px 30px;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+  }
+  h1, h2 {
+    color: #f8d775;
     text-align: center;
   }
-
-  h1 {
-    font-family: 'Playfair Display', serif;
-    font-size: 2.8rem;
-    margin-bottom: 0.4em;
-    color: #f8d775;
-    text-shadow: 0 2px 8px rgba(248, 215, 117, 0.7);
-  }
-
-  input[type="text"], input[type="password"] {
-    width: 100%;
-    padding: 15px;
-    font-size: 1.1rem;
-    margin: 12px 0 20px 0;
-    border-radius: 12px;
-    border: none;
-    outline: none;
-    box-shadow: inset 0 0 10px #f8d775;
-    background: #2a223d;
-    color: #eee;
-    font-weight: 600;
-    transition: box-shadow 0.3s ease;
-  }
-  input[type="text"]:focus, input[type="password"]:focus {
-    box-shadow: 0 0 15px #f8d775;
-  }
-
-  button {
-    background: linear-gradient(90deg, #f8d775, #d4af37);
-    border: none;
-    border-radius: 12px;
-    padding: 15px 25px;
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: #2a223d;
-    cursor: pointer;
-    box-shadow: 0 8px 20px rgba(212, 175, 55, 0.6);
-    transition: background 0.4s ease, transform 0.3s ease;
-    width: 100%;
-  }
-  button:hover {
-    background: linear-gradient(90deg, #d4af37, #f8d775);
-    transform: translateY(-3px);
-  }
-
-  .error {
-    color: #ff6b6b;
-    margin-bottom: 15px;
-    font-weight: 700;
-  }
-
-  /* Hide pages by default */
-  .page {
-    display: none;
-  }
-  .page.active {
-    display: block;
-  }
-
   .plan {
     background: #3b3456;
-    border-radius: 15px;
-    padding: 20px;
-    margin: 15px 0;
+    margin: 12px 0;
+    padding: 15px;
+    border-radius: 10px;
     cursor: pointer;
-    font-weight: 700;
-    font-size: 1.2rem;
-    box-shadow: 0 0 15px #f8d775;
-    transition: background 0.3s ease;
+    text-align: center;
+    font-weight: bold;
   }
-  .plan:hover, .plan:focus {
+  .plan:hover {
     background: #f8d775;
     color: #2a223d;
-    outline: none;
   }
-
-  .qr-section img {
-    width: 180px;
-    height: 180px;
-    margin: 10px 0 20px 0;
-    border-radius: 15px;
-    box-shadow: 0 0 20px #f8d775;
+  form {
+    margin-top: 20px;
   }
-
-  .input-group {
-    margin-top: 10px;
+  input, button {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 10px;
+    border: none;
+    font-size: 1rem;
   }
-
-  .input-group input {
-    margin-bottom: 10px;
+  button {
+    background: #f8d775;
+    font-weight: bold;
+    color: #2a223d;
+    cursor: pointer;
   }
-
-  .footer {
-    margin-top: 30px;
-    font-size: 0.8rem;
-    color: #aaa;
+  .message {
+    margin: 15px 0;
+    text-align: center;
+  }
+  .signals {
+    margin-top: 20px;
+    background: #3b3456;
+    padding: 15px;
+    border-radius: 10px;
   }
 </style>
 </head>
 <body>
 
-  <!-- Login Page -->
-  <div id="loginPage" class="container page active" role="main" aria-label="Login Page">
-    <h1>Login</h1>
-    <div id="errorMsg" class="error" aria-live="assertive"></div>
-    <input type="text" id="username" placeholder="Username" aria-label="Username" />
-    <input type="password" id="password" placeholder="Password" aria-label="Password" />
-    <button onclick="handleLogin()">Login</button>
+<div class="container">
+  <h1>Subscribe to Signals</h1>
+
+  <div id="plans">
+    <div class="plan" onclick="selectPlan('Weekly Plan', 500)">Weekly Plan - ₹500</div>
+    <div class="plan" onclick="selectPlan('Monthly Plan', 1500)">Monthly Plan - ₹1500</div>
+    <div class="plan" onclick="selectPlan('3 Months Plan', 4000)">3 Months Plan - ₹4000</div>
   </div>
 
-  <!-- Subscription Page -->
-  <div id="subscriptionPage" class="container page" role="main" aria-label="Subscription Plans">
-    <h1>Choose Your Plan</h1>
-    <p class="subtitle">Start your <strong>7-day free trial</strong> now!</p>
+  <div id="selectedPlanSection" style="display:none;">
+    <h2>You selected: <span id="planName"></span></h2>
+    <p>Amount: ₹<span id="planPrice"></span></p>
 
-    <div tabindex="0" class="plan" onclick="selectPlan('Weekly Plan', 500)" onkeypress="if(event.key==='Enter'){selectPlan('Weekly Plan', 500);}">Weekly Plan - ₹500</div>
-    <div tabindex="0" class="plan" onclick="selectPlan('Monthly Plan', 1500)" onkeypress="if(event.key==='Enter'){selectPlan('Monthly Plan', 1500);}">Monthly Plan - ₹1500</div>
-    <div tabindex="0" class="plan" onclick="selectPlan('3 Months Plan', 4000)" onkeypress="if(event.key==='Enter'){selectPlan('3 Months Plan', 4000);}">3 Months Plan - ₹4000</div>
+    <form id="utrForm" action="https://formsubmit.co/pgtechlab@gmail.com" method="POST" target="_blank">
+      <input type="hidden" name="_subject" value="New UTR Submission" />
+      <input type="hidden" name="Plan" id="formPlan" value="" />
+      <input type="email" name="Email" placeholder="Your Email" required />
+      <input type="text" name="UTR" placeholder="Enter UTR Number" required />
+      <!-- Disable CAPTCHA, redirect back to thank you page -->
+      <input type="hidden" name="_captcha" value="false" />
+      <input type="hidden" name="_next" value="https://pgtechlab.github.io/thankyou.html" />
+      <button type="submit">Submit UTR</button>
+    </form>
 
-    <button onclick="logout()">Logout</button>
+    <button onclick="changePlan()">Change Plan</button>
   </div>
 
-  <!-- Payment Page -->
-  <div id="paymentPage" class="container page" role="main" aria-label="Payment Page">
-    <h1>Payment</h1>
-    <p>You selected: <strong id="selectedPlanName"></strong></p>
-    <p>Amount to pay: <strong>₹<span id="selectedPlanPrice"></span></strong></p>
-
-    <div class="qr-section">
-      <h2>Scan to Pay via UPI</h2>
-      <img src="https://dummyimage.com/200x200/000/fff&text=QR+Code" alt="Payment QR Code" />
-      <p>After payment, enter your UTR number for confirmation.</p>
-    </div>
-
-    <div class="input-group">
-      <input type="text" id="utr" placeholder="Enter your UTR number here" aria-label="UTR Number" />
-      <button onclick="confirmUTR()">Confirm Payment</button>
-    </div>
-
-    <button onclick="backToSubscription()" style="margin-top: 20px;">Back to Plans</button>
-
-    <div class="footer">
-      <p>© 2025 Signal Provider App. All rights reserved.</p>
+  <div id="signalsSection" style="display:none;">
+    <h2>Your Trade Signals</h2>
+    <div class="signals" id="signalsContainer">
+      <!-- Signals loaded here -->
     </div>
   </div>
+</div>
 
 <script>
-  // Dummy login credentials
-  function handleLogin() {
-    const user = document.getElementById('username').value.trim();
-    const pass = document.getElementById('password').value.trim();
-    const errorMsg = document.getElementById('errorMsg');
-
-    if (!user || !pass) {
-      errorMsg.textContent = "Please enter username and password";
-      return;
-    }
-
-    if (user === 'admin' && pass === 'admin123') {
-      errorMsg.textContent = '';
-      showPage('subscriptionPage');
-    } else {
-      errorMsg.textContent = "Invalid username or password";
-    }
-  }
-
-  function showPage(pageId) {
-    ['loginPage', 'subscriptionPage', 'paymentPage'].forEach(id => {
-      document.getElementById(id).classList.remove('active');
-    });
-    document.getElementById(pageId).classList.add('active');
-  }
+  let selectedPlan = '';
 
   function selectPlan(name, price) {
-    document.getElementById('selectedPlanName').textContent = name;
-    document.getElementById('selectedPlanPrice').textContent = price;
-    showPage('paymentPage');
+    selectedPlan = name;
+    document.getElementById('planName').innerText = name;
+    document.getElementById('planPrice').innerText = price;
+    document.getElementById('formPlan').value = name;
+
+    document.getElementById('plans').style.display = 'none';
+    document.getElementById('selectedPlanSection').style.display = 'block';
+    document.getElementById('signalsSection').style.display = 'none';
   }
 
-  function confirmUTR() {
-    const utr = document.getElementById('utr').value.trim();
-    if (!utr) {
-      alert('Please enter your UTR number!');
-      return;
-    }
-    alert(`Thank you! Your UTR number "${utr}" has been submitted for admin confirmation.`);
-    // Reset for next payment
-    document.getElementById('utr').value = '';
-    showPage('subscriptionPage');
+  function changePlan() {
+    selectedPlan = '';
+    document.getElementById('plans').style.display = 'block';
+    document.getElementById('selectedPlanSection').style.display = 'none';
+    document.getElementById('signalsSection').style.display = 'none';
   }
 
-  function backToSubscription() {
-    showPage('subscriptionPage');
+  // Placeholder: after admin confirms payment (real app will fetch this from DB)
+  // For demo, signals will be shown manually or by polling backend
+
+  function showSignals(signals) {
+    const container = document.getElementById('signalsContainer');
+    container.innerHTML = ''; // Clear
+    signals.forEach(signal => {
+      const div = document.createElement('div');
+      div.textContent = signal;
+      container.appendChild(div);
+    });
+    document.getElementById('signalsSection').style.display = 'block';
   }
 
-  function logout() {
-    // Clear login fields
-    document.getElementById('username').value = '';
-    document.getElementById('password').value = '';
-    showPage('loginPage');
-  }
+  // Example: load signals after payment confirmation (demo only)
+  // In real app, check user payment status from DB here and load signals.
+
 </script>
 
 </body>
