@@ -1,218 +1,123 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Subscribe & Submit UTR</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    background: linear-gradient(135deg, #1f1c2c, #928dab);
-    color: #eee;
-    margin: 0; padding: 0;
-    display: flex;
-    justify-content: center;
-    min-height: 100vh;
-    align-items: center;
-  }
-  .container {
-    background: #2a223d;
-    padding: 30px;
-    border-radius: 15px;
-    max-width: 400px;
-    width: 90%;
-  }
-  h1, h2 {
-    color: #f8d775;
-    text-align: center;
-  }
-  .plan {
-    background: #3b3456;
-    margin: 12px 0;
-    padding: 15px;
-    border-radius: 10px;
-    cursor: pointer;
-    text-align: center;
-    font-weight: bold;
-  }
-  .plan:hover {
-    background: #f8d775;
-    color: #2a223d;
-  }
-  form {
-    margin-top: 20px;
-  }
-  input, button {
-    width: 100%;
-    padding: 12px;
-    margin: 10px 0;
-    border-radius: 10px;
-    border: none;
-    font-size: 1rem;
-  }
-  button {
-    background: #f8d775;
-    font-weight: bold;
-    color: #2a223d;
-    cursor: pointer;
-  }
-  .message {
-    margin: 15px 0;
-    text-align: center;
-  }
-  .signals {
-    margin-top: 20px;
-    background: #3b3456;
-    padding: 15px;
-    border-radius: 10px;
-  }
-</style>
+  <meta charset="UTF-8">
+  <title>Signal App - Sign Up</title>
+  <style>
+    body {
+      background: #111;
+      color: white;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px;
+    }
+    button {
+      background: #ffd700;
+      color: #000;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 10px;
+    }
+    #qr {
+      margin: 20px;
+    }
+    input {
+      padding: 10px;
+      margin: 10px;
+      width: 250px;
+      border-radius: 5px;
+      border: none;
+      background: #222;
+      color: white;
+    }
+  </style>
 </head>
 <body>
 
-<div class="container">
-  <h1>Subscribe to Signals</h1>
+  <h1>📈 Signal App - Join Us</h1>
 
-  <div id="plans">
-    <div class="plan" onclick="selectPlan('Weekly Plan', 500)">Weekly Plan - ₹500</div>
-    <div class="plan" onclick="selectPlan('Monthly Plan', 1500)">Monthly Plan - ₹1500</div>
-    <div class="plan" onclick="selectPlan('3 Months Plan', 4000)">3 Months Plan - ₹4000</div>
+  <button id="googleSignIn">Sign in with Google</button>
+  <p id="userEmail"></p>
+
+  <div id="paymentSection" style="display:none;">
+    <h2>💳 Pay & Submit UTR</h2>
+    <img id="qr" src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=yourupi@bank&pn=SignalApp&am=499&cu=INR" alt="QR Code for UPI" width="200">
+    <p>Scan to pay and enter UTR below:</p>
+    <input type="text" id="utr" placeholder="Enter UTR Number" />
+    <select id="plan">
+      <option value="weekly">Weekly</option>
+      <option value="monthly">Monthly</option>
+      <option value="3months">3 Months</option>
+    </select><br/>
+    <button onclick="submitUTR()">Submit UTR</button>
+    <p id="statusMsg"></p>
   </div>
 
-  <div id="selectedPlanSection" style="display:none;">
-    <h2>You selected: <span id="planName"></span></h2>
-    <p>Amount: ₹<span id="planPrice"></span></p>
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-    <form id="utrForm">
-      <input type="email" id="email" placeholder="Your Email" required />
-      <input type="text" id="utr" placeholder="Enter UTR Number" required />
-      <button type="submit">Submit UTR</button>
-    </form>
+  <script>
+    // 🔐 Replace with your Firebase config
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "SENDER_ID",
+      appId: "APP_ID"
+    };
 
-    <button onclick="changePlan()">Change Plan</button>
-  </div>
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-  <div id="message" class="message"></div>
+    let userEmail = "";
 
-  <div id="signalsSection" style="display:none;">
-    <h2>Your Trade Signals</h2>
-    <div class="signals" id="signalsContainer"></div>
-  </div>
-</div>
+    document.getElementById('googleSignIn').addEventListener('click', () => {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(provider)
+        .then((result) => {
+          const user = result.user;
+          userEmail = user.email;
+          document.getElementById("userEmail").textContent = "Welcome, " + user.email;
+          document.getElementById("paymentSection").style.display = "block";
+        })
+        .catch((error) => {
+          alert("Error signing in: " + error.message);
+        });
+    });
 
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    function submitUTR() {
+      const utr = document.getElementById("utr").value.trim();
+      const plan = document.getElementById("plan").value;
 
-<script>
-  // Paste your Firebase config here:
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyCZGMG8iYHmmkY_MkuPggLDShD0aFqByQ0",
-  authDomain: "signalapp-c5d0e.firebaseapp.com",
-  projectId: "signalapp-c5d0e",
-  storageBucket: "signalapp-c5d0e.firebasestorage.app",
-  messagingSenderId: "515390269998",
-  appId: "1:515390269998:web:4231b1a25e611cfd978dbf",
-  measurementId: "G-FF980DKDS2"
-};
+      if (!utr) {
+        alert("Please enter a valid UTR number.");
+        return;
+      }
 
-  // Initialize Firebase
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-
-  let selectedPlan = '';
-  let selectedPrice = 0;
-
-  function selectPlan(name, price) {
-    selectedPlan = name;
-    selectedPrice = price;
-    document.getElementById('planName').innerText = name;
-    document.getElementById('planPrice').innerText = price;
-
-    document.getElementById('plans').style.display = 'none';
-    document.getElementById('selectedPlanSection').style.display = 'block';
-    document.getElementById('signalsSection').style.display = 'none';
-    document.getElementById('message').innerText = '';
-  }
-
-  function changePlan() {
-    selectedPlan = '';
-    selectedPrice = 0;
-    document.getElementById('plans').style.display = 'block';
-    document.getElementById('selectedPlanSection').style.display = 'none';
-    document.getElementById('signalsSection').style.display = 'none';
-    document.getElementById('message').innerText = '';
-  }
-
-  document.getElementById('utrForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-
-    const email = document.getElementById('email').value.trim();
-    const utr = document.getElementById('utr').value.trim();
-
-    if(!email || !utr || !selectedPlan){
-      alert('Please fill all fields and select a plan');
-      return;
-    }
-
-    try {
-      // Save subscription with confirmed=false
-      await db.collection('subscriptions').doc(email).set({
-        email,
-        plan: selectedPlan,
-        utr,
+      db.collection("subscriptions").doc(userEmail).set({
+        email: userEmail,
+        utr: utr,
+        plan: plan,
         confirmed: false,
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      });
-
-      document.getElementById('message').innerText = 
-        'UTR submitted! Please wait for admin confirmation.';
-
-      // Start polling for confirmation
-      pollConfirmation(email);
-
-    } catch (error) {
-      console.error('Error saving subscription:', error);
-      alert('Failed to submit UTR. Try again.');
-    }
-  });
-
-  async function pollConfirmation(email) {
-    const docRef = db.collection('subscriptions').doc(email);
-
-    const intervalId = setInterval(async () => {
-      const doc = await docRef.get();
-      if(doc.exists){
-        const data = doc.data();
-        if(data.confirmed){
-          clearInterval(intervalId);
-          document.getElementById('message').innerText = 'Payment confirmed! Loading trade signals...';
-          loadSignals();
-        }
-      }
-    }, 5000);
-  }
-
-  async function loadSignals() {
-    const signalsContainer = document.getElementById('signalsContainer');
-    signalsContainer.innerHTML = 'Loading...';
-
-    const signalsSnapshot = await db.collection('signals').orderBy('timestamp', 'desc').get();
-    if(signalsSnapshot.empty){
-      signalsContainer.innerHTML = 'No signals available yet.';
-    } else {
-      signalsContainer.innerHTML = '';
-      signalsSnapshot.forEach(doc => {
-        const signal = doc.data().message;
-        const div = document.createElement('div');
-        div.textContent = signal;
-        signalsContainer.appendChild(div);
+      })
+      .then(() => {
+        document.getElementById("statusMsg").textContent = "✅ UTR Submitted. Waiting for admin confirmation.";
+      })
+      .catch((err) => {
+        console.error(err);
+        alert("Error submitting UTR.");
       });
     }
-    document.getElementById('signalsSection').style.display = 'block';
-  }
-</script>
+  </script>
 
 </body>
 </html>
