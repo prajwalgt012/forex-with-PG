@@ -227,6 +227,31 @@
       border-bottom: none;
     }
 
+    /* Full page thank you message */
+    #thankYouPage {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(20, 45, 76, 0.95);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: #00ffcc;
+      font-size: 28px;
+      font-weight: 700;
+      text-align: center;
+      padding: 20px;
+      user-select: none;
+      display: none;
+      z-index: 1100;
+    }
+    #thankYouPage small {
+      margin-top: 12px;
+      font-size: 18px;
+      font-weight: 400;
+      color: #a0e9d8;
+    }
+
   </style>
 </head>
 <body>
@@ -234,7 +259,7 @@
   <div id="overlay"></div>
 
   <div id="appContainer">
-    <h1>📈 Signal App</h1>
+    <h1>📈 Forex with PG</h1>
 
     <!-- Three-dot menu button -->
     <button id="menuBtn" title="Profile & Logout" style="display:none;">&#x22EE;</button>
@@ -267,9 +292,6 @@
         <button id="submitUTRBtn">Submit UTR</button>
       </div>
 
-      <!-- Thank you message below payment -->
-      <div id="statusMsg"></div>
-
       <!-- Trade Signals Section -->
       <div id="signalsSection" style="display:none;">
         <h2>📢 Trade Signals</h2>
@@ -277,6 +299,12 @@
       </div>
 
     </div>
+  </div>
+
+  <!-- Full page Thank you -->
+  <div id="thankYouPage">
+    Thank you for your payment.
+    <small>Please wait, admin will confirm your payment.</small>
   </div>
 
   <!-- Firebase SDKs -->
@@ -313,10 +341,11 @@
     const qrImage = document.getElementById('qr');
     const utrInput = document.getElementById('utr');
     const submitUTRBtn = document.getElementById('submitUTRBtn');
-    const statusMsg = document.getElementById('statusMsg');
 
     const signalsSection = document.getElementById('signalsSection');
     const signalsList = document.getElementById('signalsList');
+
+    const thankYouPage = document.getElementById('thankYouPage');
 
     let selectedPlan = null;
     let currentUser = null;
@@ -353,6 +382,8 @@
     // Logout
     logoutBtn.onclick = () => {
       auth.signOut();
+      // Hide thank you page if visible
+      thankYouPage.style.display = 'none';
     };
 
     // Plan selection handler
@@ -369,7 +400,6 @@
 
         // Clear previous inputs/messages
         utrInput.value = '';
-        statusMsg.textContent = '';
       }
     });
 
@@ -396,11 +426,15 @@
           timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        // Show thank you message and hide payment inputs
-        statusMsg.innerHTML = "Thank you for your payment.<br/><small>Please wait, admin will confirm your payment.</small>";
-        paymentSection.style.display = 'none';
+        // Hide everything except thank you page
+        authSection.style.display = 'none';
+        loggedInSection.style.display = 'none';
+        menuBtn.style.display = 'none';
+        menuDropdown.style.display = 'none';
+
+        thankYouPage.style.display = 'flex';
       } catch (error) {
-        statusMsg.textContent = "Error submitting UTR. Please try again.";
+        alert("Error submitting UTR. Please try again.");
         console.error(error);
       }
     };
@@ -433,23 +467,22 @@
         authSection.style.display = 'none';
         loggedInSection.style.display = 'block';
         menuBtn.style.display = 'block';
+        thankYouPage.style.display = 'none';
 
         profileEmail.textContent = user.email;
 
         // Check subscription confirmation
         const subDoc = await db.collection("subscriptions").doc(user.email).get();
         if (subDoc.exists && subDoc.data().confirmed) {
-          // Show signals and hide plans + payment + thank you msg
+          // Show signals and hide plans + payment
           plansContainer.style.display = 'none';
           paymentSection.style.display = 'none';
-          statusMsg.textContent = '';
-          await showSignals();
+          signalsSection.style.display = 'block';
         } else {
-          // Show plans, hide signals
+          // Show plans, hide signals and payment
           signalsSection.style.display = 'none';
           plansContainer.style.display = 'flex';
           paymentSection.style.display = 'none';
-          statusMsg.textContent = "Submit UTR to access signals.";
           selectedPlan = null;
           // Remove plan selection highlight
           Array.from(plansContainer.children).forEach(el => el.classList.remove('selected'));
@@ -460,7 +493,7 @@
         loggedInSection.style.display = 'none';
         menuBtn.style.display = 'none';
         menuDropdown.style.display = 'none';
-        statusMsg.textContent = '';
+        thankYouPage.style.display = 'none';
       }
     });
   </script>
