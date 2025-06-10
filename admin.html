@@ -159,14 +159,6 @@
         <label for="target">Target:</label>
         <input type="text" id="target" placeholder="TP price" />
       </div>
-      <div class="entry-row">
-        <label for="message">Message:</label>
-        <textarea id="message" placeholder="Extra message (optional)"></textarea>
-      </div>
-      <div class="entry-row">
-        <label for="result">Result:</label>
-        <input type="text" id="result" placeholder="Win / Loss / NA" />
-      </div>
       <button onclick="postSignal()">Post Signal</button>
       <p id="postStatus"></p>
     </div>
@@ -175,94 +167,217 @@
     <div id="signalList"></div>
   </div>
 
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script>
-    const ADMIN_USERNAME = "admin";
-    const ADMIN_PASSWORD = "admin123";
+    const firebaseConfig = {
+      apiKey: "AIzaSyCZGMG8iYHmmkY_MkuPggLDShD0aFqByQ0",
+      authDomain: "signalapp-c5d0e.firebaseapp.com",
+      projectId: "signalapp-c5d0e",
+      storageBucket: "signalapp-c5d0e.appspot.com",
+      messagingSenderId: "515390269998",
+      appId: "1:515390269998:web:4231b1a25e611cfd978dbf"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const ADMIN_USERNAME = "mrpg0816";
+    const ADMIN_PASSWORD = "Pg@12341435";
+
+    const authSection = document.getElementById("authSection");
+    const adminPanel = document.getElementById("adminPanel");
+    const loginError = document.getElementById("loginError");
+
+    if (sessionStorage.getItem("adminLoggedIn") === "true") {
+      showAdminPanel();
+    }
 
     function login(event) {
       event.preventDefault();
-      const u = document.getElementById("username").value.trim();
-      const p = document.getElementById("password").value;
-      if (u === ADMIN_USERNAME && p === ADMIN_PASSWORD) {
-        document.getElementById("authSection").style.display = "none";
-        document.getElementById("adminPanel").style.display = "block";
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value;
+      if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+        sessionStorage.setItem("adminLoggedIn", "true");
+        showAdminPanel();
       } else {
-        document.getElementById("loginError").innerText = "Invalid credentials";
+        loginError.textContent = "Invalid username or password";
       }
     }
 
-    function logout() {
-      location.reload();
-    }
-
-    function postSignal() {
-      const pair = document.getElementById("pair").value;
-      const type = document.getElementById("type").value;
-      const entry = document.getElementById("entry").value;
-      const stoploss = document.getElementById("stoploss").value;
-      const target = document.getElementById("target").value;
-      const message = document.getElementById("message").value;
-      const result = document.getElementById("result").value;
-
-      const signal = {
-        pair, type, entry, stoploss, target, message, result,
-        timestamp: new Date().toLocaleString()
-      };
-
-      let signals = JSON.parse(localStorage.getItem("signals") || "[]");
-      signals.unshift(signal);
-      localStorage.setItem("signals", JSON.stringify(signals));
-      document.getElementById("postStatus").innerText = "Signal posted!";
-      setTimeout(() => document.getElementById("postStatus").innerText = "", 3000);
+    function showAdminPanel() {
+      authSection.style.display = "none";
+      adminPanel.style.display = "block";
+      loadSubscriptions();
       loadSignals();
     }
 
-    function loadSignals() {
+    function logout() {
+      sessionStorage.removeItem("adminLoggedIn");
+      location.reload();
+    }
+
+    async function loadSubscriptions() {
+      const requestsDiv = document.getElementById("requests");
+      const snapshot = await db.collection("subscriptions").orderBy("timestamp", "desc").get();
+      requestsDiv.innerHTML = "";
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const id = doc.id;
+        const div = document.createElement("div");
+        div.className = "entry " + (data.confirmed ? "confirmed" : "");
+        div.innerHTML = 
+          <div class="entry-row"><label>Email:</label><input type="email" value="${data.email}" disabled /></div>
+          <div class="entry-row"><label>UTR:</label><input type="text" value="${data.utr}" disabled /></div>
+          <div class="entry-row"><label>Plan:</label><input type="text" value="${data.plan}" disabled /></div>
+          <div class="entry-row"><label>Confirmed:</label><input type="checkbox" ${data.confirmed ? "checked" : ""} disabled /></div>
+          <button onclick="editSubscription('${id}', this)">Edit</button>
+          <button onclick="removeSubscription('${id}')">Remove</button>
+        ;
+        requestsDiv.appendChild(div);
+      });
+    }
+
+    function editSubscription(id, btn) {
+      const entryDiv = btn.parentElement;
+      const inputs = entryDiv.querySelectorAll("input");
+
+      if (btn.textContent === "Edit") {
+        inputs.forEach(input => input.disabled = false);
+        btn.textContent = "Save";
+      } else {
+        const updatedData = {
+          email: inputs[0].value.trim(),
+          utr: inputs[1].value.trim(),
+          plan: inputs[2].value.trim(),
+          confirmed: inputs[3].checked,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        if (!updatedData.email || !updatedData.utr || !updatedData.plan) {
+          alert("Fields cannot be empty.");
+          return;
+        }
+
+        db.collection("subscriptions").doc(id).update(updatedData)
+          .then(() => {
+            inputs.forEach(input => input.disabled = true);
+            btn.textContent = "Edit";
+            loadSubscriptions();
+            alert("Subscription updated!");
+          })
+          .catch(err => alert("Error: " + err.message));
+      }
+    }
+
+    async function removeSubscription(id) {
+      if (confirm("Delete this subscription?")) {
+        try {
+          await db.collection("subscriptions").doc(id).delete();
+          alert("Deleted.");
+          loadSubscriptions();
+        } catch (err) {
+          alert("Error: " + err.message);
+        }
+      }
+    }
+
+    async function addSubscription() {
+      const email = document.getElementById("newEmail").value.trim();
+      const utr = document.getElementById("newUTR").value.trim();
+      const plan = document.getElementById("newPlan").value.trim();
+      const confirmed = document.getElementById("newConfirmed").checked;
+      const status = document.getElementById("addSubStatus");
+
+      if (!email || !utr || !plan) {
+        alert("Fill all fields.");
+        return;
+      }
+
+      try {
+        await db.collection("subscriptions").add({
+          email, utr, plan, confirmed,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        status.textContent = "Subscription added!";
+        setTimeout(() => status.textContent = "", 4000);
+        document.getElementById("newEmail").value = "";
+        document.getElementById("newUTR").value = "";
+        document.getElementById("newPlan").value = "";
+        document.getElementById("newConfirmed").checked = false;
+        loadSubscriptions();
+      } catch (err) {
+        alert("Error: " + err.message);
+      }
+    }
+
+    async function postSignal() {
+      const pair = document.getElementById("pair").value.trim();
+      const type = document.getElementById("type").value.trim();
+      const entry = document.getElementById("entry").value.trim();
+      const stoploss = document.getElementById("stoploss").value.trim();
+      const target = document.getElementById("target").value.trim();
+      const status = document.getElementById("postStatus");
+
+      if (!pair || !type || !entry || !stoploss || !target) {
+        alert("Please fill all fields.");
+        return;
+      }
+
+      try {
+        await db.collection("signals").add({
+          pair, type, entry, stoploss, target,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        status.textContent = "✅ Signal posted!";
+        setTimeout(() => status.textContent = "", 3000);
+        document.getElementById("pair").value = "";
+        document.getElementById("type").value = "";
+        document.getElementById("entry").value = "";
+        document.getElementById("stoploss").value = "";
+        document.getElementById("target").value = "";
+        loadSignals();
+      } catch (err) {
+        alert("Error posting signal: " + err.message);
+      }
+    }
+
+    async function loadSignals() {
       const list = document.getElementById("signalList");
+      const snapshot = await db.collection("signals").orderBy("timestamp", "desc").get();
       list.innerHTML = "";
-      const signals = JSON.parse(localStorage.getItem("signals") || "[]");
-      signals.forEach((s, i) => {
+
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const id = doc.id;
+        const time = data.timestamp?.toDate().toLocaleString() || "No time";
         const div = document.createElement("div");
         div.className = "entry";
-        div.innerHTML = `
-          <div class="time">📅 ${s.timestamp}</div>
-          <div><strong>Pair:</strong> ${s.pair}</div>
-          <div><strong>Type:</strong> ${s.type}</div>
-          <div><strong>Entry:</strong> ${s.entry}</div>
-          <div><strong>Stoploss:</strong> ${s.stoploss}</div>
-          <div><strong>Target:</strong> ${s.target}</div>
-          <div><strong>Message:</strong> ${s.message}</div>
-          <div><strong>Result:</strong> ${s.result}</div>
-          <button onclick="editSignal(${i})">Edit</button>
-          <button onclick="deleteSignal(${i})">Delete</button>
-        `;
+        div.innerHTML = 
+          <div class="time">📅 ${time}</div>
+          <div><strong>Pair:</strong> ${data.pair}</div>
+          <div><strong>Type:</strong> ${data.type}</div>
+          <div><strong>Entry:</strong> ${data.entry}</div>
+          <div><strong>Stoploss:</strong> ${data.stoploss}</div>
+          <div><strong>Target:</strong> ${data.target}</div>
+          <button onclick="deleteSignal('${id}')">Delete</button>
+        ;
         list.appendChild(div);
       });
     }
 
-    function deleteSignal(index) {
-      const signals = JSON.parse(localStorage.getItem("signals") || "[]");
-      signals.splice(index, 1);
-      localStorage.setItem("signals", JSON.stringify(signals));
-      loadSignals();
+    async function deleteSignal(id) {
+      if (confirm("Delete this signal?")) {
+        try {
+          await db.collection("signals").doc(id).delete();
+          alert("Signal deleted.");
+          loadSignals();
+        } catch (err) {
+          alert("Error deleting signal: " + err.message);
+        }
+      }
     }
-
-    function editSignal(index) {
-      const signals = JSON.parse(localStorage.getItem("signals") || "[]");
-      const signal = signals[index];
-      document.getElementById("pair").value = signal.pair;
-      document.getElementById("type").value = signal.type;
-      document.getElementById("entry").value = signal.entry;
-      document.getElementById("stoploss").value = signal.stoploss;
-      document.getElementById("target").value = signal.target;
-      document.getElementById("message").value = signal.message;
-      document.getElementById("result").value = signal.result;
-      signals.splice(index, 1);
-      localStorage.setItem("signals", JSON.stringify(signals));
-      loadSignals();
-    }
-
-    window.onload = loadSignals;
   </script>
 </body>
-</html>
+</html> 
