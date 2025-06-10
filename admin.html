@@ -10,11 +10,9 @@
       font-family: Arial, sans-serif;
       padding: 30px;
     }
-
     h1, h2 {
       color: #ffd700;
     }
-
     button {
       padding: 8px 16px;
       background-color: #ffd700;
@@ -26,7 +24,6 @@
       margin-right: 8px;
       margin-top: 8px;
     }
-
     input, textarea {
       padding: 10px;
       width: 300px;
@@ -35,7 +32,6 @@
       border: none;
       box-sizing: border-box;
     }
-
     .entry {
       background: #222;
       padding: 15px;
@@ -43,30 +39,24 @@
       border-radius: 8px;
       border-left: 4px solid red;
     }
-
     .confirmed {
       border-left: 4px solid #00ff00;
     }
-
     .entry-row {
       margin-bottom: 6px;
     }
-
     label {
       display: inline-block;
       width: 80px;
       font-weight: bold;
     }
-
-    #addSubscriptionForm,
-    #postSignalForm {
+    #addSubscriptionForm, #postSignalForm {
       background: #222;
       padding: 20px;
       border-radius: 10px;
       margin-top: 20px;
       max-width: 400px;
     }
-
     #loginForm {
       background: #222;
       padding: 25px;
@@ -74,20 +64,17 @@
       max-width: 350px;
       margin: 50px auto;
     }
-
     #loginForm label {
       width: auto;
       display: block;
       margin-bottom: 6px;
       font-weight: bold;
     }
-
     #loginError {
       color: #f00;
       font-weight: bold;
       margin-top: 10px;
     }
-
     .time {
       font-size: 12px;
       color: #ccc;
@@ -97,7 +84,6 @@
 </head>
 <body>
   <h1>🔐 Admin Panel</h1>
-
   <div id="authSection">
     <form id="loginForm" onsubmit="return login(event)">
       <label for="username">Username:</label>
@@ -108,91 +94,35 @@
       <p id="loginError"></p>
     </form>
   </div>
-
   <div id="adminPanel" style="display:none;">
     <button onclick="logout()">Logout</button>
-
     <h2>📝 Subscription Requests</h2>
     <div id="requests"></div>
-
     <h2>➕ Add New Subscription</h2>
     <div id="addSubscriptionForm">
-      <div class="entry-row">
-        <label for="newEmail">Email:</label>
-        <input type="email" id="newEmail" />
-      </div>
-      <div class="entry-row">
-        <label for="newUTR">UTR:</label>
-        <input type="text" id="newUTR" />
-      </div>
-      <div class="entry-row">
-        <label for="newPlan">Plan:</label>
-        <input type="text" id="newPlan" />
-      </div>
-      <div class="entry-row">
-        <label for="newConfirmed">Confirmed:</label>
-        <input type="checkbox" id="newConfirmed" />
-      </div>
+      <div class="entry-row"><label for="newEmail">Email:</label><input type="email" id="newEmail" /></div>
+      <div class="entry-row"><label for="newUTR">UTR:</label><input type="text" id="newUTR" /></div>
+      <div class="entry-row"><label for="newPlan">Plan:</label><input type="text" id="newPlan" /></div>
+      <div class="entry-row"><label for="newConfirmed">Confirmed:</label><input type="checkbox" id="newConfirmed" /></div>
       <button onclick="addSubscription()">Add Subscription</button>
       <p id="addSubStatus" style="color:#0f0; font-weight:bold;"></p>
     </div>
-
     <h2>📢 Post Trade Signal</h2>
     <div id="postSignalForm">
-      <div class="entry-row">
-        <label for="pair">Pair:</label>
-        <input type="text" id="pair" placeholder="e.g. XAUUSD" />
-      </div>
-      <div class="entry-row">
-        <label for="type">Type:</label>
-        <input type="text" id="type" placeholder="Buy or Sell" />
-      </div>
-      <div class="entry-row">
-        <label for="entry">Entry:</label>
-        <input type="text" id="entry" placeholder="Entry price" />
-      </div>
-      <div class="entry-row">
-        <label for="stoploss">Stoploss:</label>
-        <input type="text" id="stoploss" placeholder="SL price" />
-      </div>
-      <div class="entry-row">
-        <label for="target">Target:</label>
-        <input type="text" id="target" placeholder="TP price" />
-      </div>
+      <div class="entry-row"><label for="pair">Pair:</label><input type="text" id="pair" placeholder="e.g. XAUUSD" /></div>
+      <div class="entry-row"><label for="type">Type:</label><input type="text" id="type" placeholder="Buy or Sell" /></div>
+      <div class="entry-row"><label for="entry">Entry:</label><input type="text" id="entry" placeholder="Entry price" /></div>
+      <div class="entry-row"><label for="stoploss">Stoploss:</label><input type="text" id="stoploss" placeholder="SL price" /></div>
+      <div class="entry-row"><label for="target">Target:</label><input type="text" id="target" placeholder="TP price" /></div>
       <button onclick="postSignal()">Post Signal</button>
       <p id="postStatus"></p>
     </div>
-
     <h2>📃 Manage Posted Signals</h2>
     <div id="signalList"></div>
   </div>
-
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCZGMG8iYHmmkY_MkuPggLDShD0aFqByQ0",
-      authDomain: "signalapp-c5d0e.firebaseapp.com",
-      projectId: "signalapp-c5d0e",
-      storageBucket: "signalapp-c5d0e.appspot.com",
-      messagingSenderId: "515390269998",
-      appId: "1:515390269998:web:4231b1a25e611cfd978dbf"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
     const ADMIN_USERNAME = "mrpg0816";
     const ADMIN_PASSWORD = "Pg@12341435";
-
-    const authSection = document.getElementById("authSection");
-    const adminPanel = document.getElementById("adminPanel");
-    const loginError = document.getElementById("loginError");
-
-    if (sessionStorage.getItem("adminLoggedIn") === "true") {
-      showAdminPanel();
-    }
-
     function login(event) {
       event.preventDefault();
       const username = document.getElementById("username").value.trim();
@@ -201,183 +131,18 @@
         sessionStorage.setItem("adminLoggedIn", "true");
         showAdminPanel();
       } else {
-        loginError.textContent = "Invalid username or password";
+        document.getElementById("loginError").textContent = "Invalid username or password";
       }
     }
-
     function showAdminPanel() {
-      authSection.style.display = "none";
-      adminPanel.style.display = "block";
-      loadSubscriptions();
-      loadSignals();
+      document.getElementById("authSection").style.display = "none";
+      document.getElementById("adminPanel").style.display = "block";
     }
-
     function logout() {
       sessionStorage.removeItem("adminLoggedIn");
       location.reload();
     }
-
-    async function loadSubscriptions() {
-      const requestsDiv = document.getElementById("requests");
-      const snapshot = await db.collection("subscriptions").orderBy("timestamp", "desc").get();
-      requestsDiv.innerHTML = "";
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        const id = doc.id;
-        const div = document.createElement("div");
-        div.className = "entry " + (data.confirmed ? "confirmed" : "");
-        div.innerHTML = 
-          <div class="entry-row"><label>Email:</label><input type="email" value="${data.email}" disabled /></div>
-          <div class="entry-row"><label>UTR:</label><input type="text" value="${data.utr}" disabled /></div>
-          <div class="entry-row"><label>Plan:</label><input type="text" value="${data.plan}" disabled /></div>
-          <div class="entry-row"><label>Confirmed:</label><input type="checkbox" ${data.confirmed ? "checked" : ""} disabled /></div>
-          <button onclick="editSubscription('${id}', this)">Edit</button>
-          <button onclick="removeSubscription('${id}')">Remove</button>
-        ;
-        requestsDiv.appendChild(div);
-      });
-    }
-
-    function editSubscription(id, btn) {
-      const entryDiv = btn.parentElement;
-      const inputs = entryDiv.querySelectorAll("input");
-
-      if (btn.textContent === "Edit") {
-        inputs.forEach(input => input.disabled = false);
-        btn.textContent = "Save";
-      } else {
-        const updatedData = {
-          email: inputs[0].value.trim(),
-          utr: inputs[1].value.trim(),
-          plan: inputs[2].value.trim(),
-          confirmed: inputs[3].checked,
-          timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        };
-
-        if (!updatedData.email || !updatedData.utr || !updatedData.plan) {
-          alert("Fields cannot be empty.");
-          return;
-        }
-
-        db.collection("subscriptions").doc(id).update(updatedData)
-          .then(() => {
-            inputs.forEach(input => input.disabled = true);
-            btn.textContent = "Edit";
-            loadSubscriptions();
-            alert("Subscription updated!");
-          })
-          .catch(err => alert("Error: " + err.message));
-      }
-    }
-
-    async function removeSubscription(id) {
-      if (confirm("Delete this subscription?")) {
-        try {
-          await db.collection("subscriptions").doc(id).delete();
-          alert("Deleted.");
-          loadSubscriptions();
-        } catch (err) {
-          alert("Error: " + err.message);
-        }
-      }
-    }
-
-    async function addSubscription() {
-      const email = document.getElementById("newEmail").value.trim();
-      const utr = document.getElementById("newUTR").value.trim();
-      const plan = document.getElementById("newPlan").value.trim();
-      const confirmed = document.getElementById("newConfirmed").checked;
-      const status = document.getElementById("addSubStatus");
-
-      if (!email || !utr || !plan) {
-        alert("Fill all fields.");
-        return;
-      }
-
-      try {
-        await db.collection("subscriptions").add({
-          email, utr, plan, confirmed,
-          timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-        status.textContent = "Subscription added!";
-        setTimeout(() => status.textContent = "", 4000);
-        document.getElementById("newEmail").value = "";
-        document.getElementById("newUTR").value = "";
-        document.getElementById("newPlan").value = "";
-        document.getElementById("newConfirmed").checked = false;
-        loadSubscriptions();
-      } catch (err) {
-        alert("Error: " + err.message);
-      }
-    }
-
-    async function postSignal() {
-      const pair = document.getElementById("pair").value.trim();
-      const type = document.getElementById("type").value.trim();
-      const entry = document.getElementById("entry").value.trim();
-      const stoploss = document.getElementById("stoploss").value.trim();
-      const target = document.getElementById("target").value.trim();
-      const status = document.getElementById("postStatus");
-
-      if (!pair || !type || !entry || !stoploss || !target) {
-        alert("Please fill all fields.");
-        return;
-      }
-
-      try {
-        await db.collection("signals").add({
-          pair, type, entry, stoploss, target,
-          timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        status.textContent = "✅ Signal posted!";
-        setTimeout(() => status.textContent = "", 3000);
-        document.getElementById("pair").value = "";
-        document.getElementById("type").value = "";
-        document.getElementById("entry").value = "";
-        document.getElementById("stoploss").value = "";
-        document.getElementById("target").value = "";
-        loadSignals();
-      } catch (err) {
-        alert("Error posting signal: " + err.message);
-      }
-    }
-
-    async function loadSignals() {
-      const list = document.getElementById("signalList");
-      const snapshot = await db.collection("signals").orderBy("timestamp", "desc").get();
-      list.innerHTML = "";
-
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        const id = doc.id;
-        const time = data.timestamp?.toDate().toLocaleString() || "No time";
-        const div = document.createElement("div");
-        div.className = "entry";
-        div.innerHTML = 
-          <div class="time">📅 ${time}</div>
-          <div><strong>Pair:</strong> ${data.pair}</div>
-          <div><strong>Type:</strong> ${data.type}</div>
-          <div><strong>Entry:</strong> ${data.entry}</div>
-          <div><strong>Stoploss:</strong> ${data.stoploss}</div>
-          <div><strong>Target:</strong> ${data.target}</div>
-          <button onclick="deleteSignal('${id}')">Delete</button>
-        ;
-        list.appendChild(div);
-      });
-    }
-
-    async function deleteSignal(id) {
-      if (confirm("Delete this signal?")) {
-        try {
-          await db.collection("signals").doc(id).delete();
-          alert("Signal deleted.");
-          loadSignals();
-        } catch (err) {
-          alert("Error deleting signal: " + err.message);
-        }
-      }
-    }
+    if (sessionStorage.getItem("adminLoggedIn") === "true") showAdminPanel();
   </script>
 </body>
-</html> 
+</html>
