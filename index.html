@@ -21,6 +21,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      flex-direction: column;
     }
 
     .box {
@@ -117,6 +118,14 @@
       text-align: center;
       margin-top: 10px;
       color: #999;
+    }
+
+    #signalsList li {
+      margin-bottom: 10px;
+      padding: 10px;
+      background-color: #191919;
+      border-left: 4px solid #66ff99;
+      border-radius: 6px;
     }
   </style>
 </head>
@@ -262,16 +271,19 @@
       thankYouSection.style.display = "block";
     }
 
-    async function showSignals() {
+    function showSignals() {
       thankYouSection.style.display = "none";
       signalsSection.style.display = "block";
 
-      const querySnapshot = await db.collection("signals").orderBy("timestamp", "desc").get();
-      signalsList.innerHTML = "";
-      querySnapshot.forEach(doc => {
-        const li = document.createElement("li");
-        li.textContent = doc.data().message;
-        signalsList.appendChild(li);
+      db.collection("signals").orderBy("timestamp", "desc").onSnapshot(snapshot => {
+        signalsList.innerHTML = "";
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const li = document.createElement("li");
+          const time = data.timestamp?.toDate().toLocaleString() || "Unknown time";
+          li.innerHTML = `<div><strong>${time}</strong><br>${data.message}</div>`;
+          signalsList.appendChild(li);
+        });
       });
     }
   </script>
