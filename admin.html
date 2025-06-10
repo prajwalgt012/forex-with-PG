@@ -109,10 +109,6 @@
       margin-top: 10px;
     }
 
-    #signalList .entry {
-      border-left-color: #ffd700;
-    }
-
     .time {
       font-size: 12px;
       color: #ccc;
@@ -121,7 +117,6 @@
   </style>
 </head>
 <body>
-
   <h1>🔐 Admin Panel</h1>
 
   <div id="authSection">
@@ -183,8 +178,7 @@
       projectId: "signalapp-c5d0e",
       storageBucket: "signalapp-c5d0e.appspot.com",
       messagingSenderId: "515390269998",
-      appId: "1:515390269998:web:4231b1a25e611cfd978dbf",
-      measurementId: "G-FF980DKDS2"
+      appId: "1:515390269998:web:4231b1a25e611cfd978dbf"
     };
 
     firebase.initializeApp(firebaseConfig);
@@ -205,7 +199,6 @@
       event.preventDefault();
       const username = document.getElementById("username").value.trim();
       const password = document.getElementById("password").value;
-
       if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
         sessionStorage.setItem("adminLoggedIn", "true");
         showAdminPanel();
@@ -231,30 +224,16 @@
       const requestsDiv = document.getElementById("requests");
       const snapshot = await db.collection("subscriptions").orderBy("timestamp", "desc").get();
       requestsDiv.innerHTML = "";
-
       snapshot.forEach(doc => {
         const data = doc.data();
         const id = doc.id;
-
         const div = document.createElement("div");
         div.className = "entry " + (data.confirmed ? "confirmed" : "");
         div.innerHTML = `
-          <div class="entry-row">
-            <label>Email:</label>
-            <input type="email" value="${data.email}" disabled />
-          </div>
-          <div class="entry-row">
-            <label>UTR:</label>
-            <input type="text" value="${data.utr}" disabled />
-          </div>
-          <div class="entry-row">
-            <label>Plan:</label>
-            <input type="text" value="${data.plan}" disabled />
-          </div>
-          <div class="entry-row">
-            <label>Confirmed:</label>
-            <input type="checkbox" ${data.confirmed ? "checked" : ""} disabled />
-          </div>
+          <div class="entry-row"><label>Email:</label><input type="email" value="${data.email}" disabled /></div>
+          <div class="entry-row"><label>UTR:</label><input type="text" value="${data.utr}" disabled /></div>
+          <div class="entry-row"><label>Plan:</label><input type="text" value="${data.plan}" disabled /></div>
+          <div class="entry-row"><label>Confirmed:</label><input type="checkbox" ${data.confirmed ? "checked" : ""} disabled /></div>
           <button onclick="editSubscription('${id}', this)">Edit</button>
           <button onclick="removeSubscription('${id}')">Remove</button>
         `;
@@ -347,9 +326,7 @@
         document.getElementById("signalMsg").value = "";
         document.getElementById("postStatus").innerText = "Signal posted!";
         loadSignals();
-        setTimeout(() => {
-          document.getElementById("postStatus").innerText = "";
-        }, 3000);
+        setTimeout(() => document.getElementById("postStatus").innerText = "", 3000);
       } catch (err) {
         alert("Error: " + err.message);
       }
@@ -364,7 +341,6 @@
         const data = doc.data();
         const id = doc.id;
         const time = data.timestamp?.toDate().toLocaleString() || "No time";
-
         const div = document.createElement("div");
         div.className = "entry";
         div.innerHTML = `
